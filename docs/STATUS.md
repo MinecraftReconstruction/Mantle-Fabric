@@ -14,9 +14,20 @@
 | 分支 | 版本 | 状态 |
 |---|---|---|
 | `1.20.1`（默认） | 1.9.x | 当前对外发布所对应的分支 |
-| **`1.20.1-update`** | **1.11** | **Mantle 1.11 的 Fabric 移植 WIP —— 主战场** |
+| `1.20.1-update` | 1.11 | **原作者 AlphaMode 的 WIP 分支**（tip `eb1e9a5a`，2026-01-12）。不要在其上提交 |
+| **`ai/mantle-1.11`** | **1.11** | **我们的工作分支（AI 生成）**，基点即上述 `eb1e9a5a` —— 主战场 |
 | `1.21.1` | — | Alpha 的 1.21.1 尝试 |
 | `1.11` / `1.12` / … | — | 继承自上游 SlimeKnights 的 Forge 分支，不是 Fabric 适配 |
+
+### 归属与分支纪律
+
+`Alpha-s-Stuff/Mantle` 里的 `1.20.1-update` 是 **AlphaMode 的工作分支**，本仓库 fork 时一并带入。
+我们的所有改动都应落在 `ai/*` 分支上，这样 `git diff eb1e9a5a..ai/mantle-1.11` 就能一眼看出
+"哪些是原作者的、哪些是 AI 生成的"。当前该 diff 为：**5 个文件，+292/−29**，真正的代码改动只有
+`MantleItemLayerModel.java`。
+
+⚠️ 遗留问题：`MinecraftReconstruction/Mantle-Fabric` 的 `1.20.1-update` 分支早期被误叠了我们的提交，
+理想状态是 force push 还原到 `eb1e9a5a`（**需人工确认**）。详见 [AGENTS.md](../AGENTS.md)。
 
 ## `1.20.1-update` 的现状（已复现）
 
