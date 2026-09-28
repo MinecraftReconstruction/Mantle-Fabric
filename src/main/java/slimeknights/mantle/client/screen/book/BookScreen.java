@@ -210,14 +210,15 @@ public class BookScreen extends Screen {
           String pNum = this.page * 2 + "";
           matrixStack.pushPose();
           drawerTransform(matrixStack, false);
-          graphics.drawString(fontRenderer, pNum, (PAGE_WIDTH - fontRenderer.width(pNum)) / 2f, PAGE_HEIGHT - 10, 0xFFAAAAAA, false);
+          // Forge widens this overload to take a float x; vanilla takes an int
+          graphics.drawString(fontRenderer, pNum, (int)((PAGE_WIDTH - fontRenderer.width(pNum)) / 2f), PAGE_HEIGHT - 10, 0xFFAAAAAA, false);
           matrixStack.popPose();
         }
         if (renderRight) {
           String pNum = this.page * 2 + 1 + "";
           matrixStack.pushPose();
           drawerTransform(matrixStack, true);
-          graphics.drawString(fontRenderer, pNum, (PAGE_WIDTH - fontRenderer.width(pNum)) / 2f, PAGE_HEIGHT - 10, 0xFFAAAAAA, false);
+          graphics.drawString(fontRenderer, pNum, (int)((PAGE_WIDTH - fontRenderer.width(pNum)) / 2f), PAGE_HEIGHT - 10, 0xFFAAAAAA, false);
           matrixStack.popPose();
         }
       }

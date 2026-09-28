@@ -120,3 +120,11 @@ accessible field net/minecraft/client/renderer/block/model/BlockModel textureMap
 
 accessible method net/minecraft/client/gui/GuiGraphics flushIfUnmanaged ()V
 accessible method net/minecraft/client/gui/GuiGraphics <init> (Lnet/minecraft/client/Minecraft;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;)V
+
+# MinecraftReconstruction: members that Forge opens with an access transformer but vanilla keeps private
+transitive-accessible field net/minecraft/client/Minecraft fontManager Lnet/minecraft/client/gui/font/FontManager;
+transitive-accessible field net/minecraft/client/gui/font/FontManager fontSets Ljava/util/Map;
+transitive-accessible method net/minecraft/util/thread/BlockableEventLoop submitAsync (Ljava/lang/Runnable;)Ljava/util/concurrent/CompletableFuture;
+transitive-accessible field net/minecraft/client/resources/model/ModelManager atlases Lnet/minecraft/client/resources/model/AtlasSet;
+transitive-accessible field net/minecraft/client/resources/model/AtlasSet atlases Ljava/util/Map;
+transitive-accessible field net/minecraft/world/inventory/AbstractContainerMenu menuType Lnet/minecraft/world/inventory/MenuType;

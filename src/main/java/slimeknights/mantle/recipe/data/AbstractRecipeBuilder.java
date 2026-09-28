@@ -93,7 +93,8 @@ public abstract class AbstractRecipeBuilder<T extends AbstractRecipeBuilder<T>> 
         .requirements(RequirementsStrategy.OR);
     // we directly add the critera through the map as we want to replace it if already added instead of erroring
     // the rest of these setters all replace our previous recipe data
-    this.advancementBuilder.criteria.put("has_the_recipe", new Criterion(RecipeUnlockedTrigger.unlocked(id)));
+    // vanilla exposes getCriteria() but keeps the field itself private
+    this.advancementBuilder.getCriteria().put("has_the_recipe", new Criterion(RecipeUnlockedTrigger.unlocked(id)));
     return new ResourceLocation(id.getNamespace(), "recipes/" + folder + "/" + id.getPath());
   }
 
