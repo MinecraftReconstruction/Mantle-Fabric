@@ -33,6 +33,19 @@ public class OffhandCooldownTracker implements PlayerComponent<OffhandCooldownTr
   public static final NonNullFunction<OffhandCooldownTracker,Float> COOLDOWN_TRACKER = OffhandCooldownTracker::getCooldown;
 
   /**
+   * No-arg constructor required by Cardinal Components: the class doubles as this mod's
+   * {@code cardinal-components} entrypoint, and Fabric instantiates entrypoints reflectively.
+   * The instance created here is only used to call {@link #registerEntityComponentFactories}; the per-player
+   * instances come from {@link #attachCapability}.
+   * <p>
+   * The 1.20.1 branch had this constructor. It was lost when the 1.11 tree was merged in, which made the whole mod
+   * fail to initialise (every entity construction threw). See docs/BEHAVIOUR-DIFFERENCES.md.
+   */
+  public OffhandCooldownTracker() {
+    this.player = null;
+  }
+
+  /**
    * Capability instance for offhand cooldown
    */
   public static final ComponentKey<OffhandCooldownTracker> CAPABILITY = ComponentRegistry.getOrCreate(KEY, OffhandCooldownTracker.class);
@@ -194,15 +207,15 @@ public class OffhandCooldownTracker implements PlayerComponent<OffhandCooldownTr
 
   @Override
   public void readFromNbt(CompoundTag tag) {
-    tag.putInt("attackReady", this.attackReady);
-    tag.putInt("lastCooldown", this.lastCooldown);
-    tag.putInt("enabled", this.enabled);
+    this.attackReady = tag.getInt("attackReady");
+    this.lastCooldown = tag.getInt("lastCooldown");
+    this.enabled = tag.getInt("enabled");
   }
 
   @Override
   public void writeToNbt(CompoundTag tag) {
-    this.attackReady = tag.getInt("attackReady");
-    this.lastCooldown = tag.getInt("lastCooldown");
-    this.enabled = tag.getInt("enabled");
+    tag.putInt("attackReady", this.attackReady);
+    tag.putInt("lastCooldown", this.lastCooldown);
+    tag.putInt("enabled", this.enabled);
   }
 }

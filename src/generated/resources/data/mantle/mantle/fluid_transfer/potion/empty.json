@@ -1,6 +1,6 @@
 {
   "type": "mantle:empty_potion",
-  "amount": 250,
+  "amount": 27000,
   "input": {
     "item": "minecraft:potion"
   },

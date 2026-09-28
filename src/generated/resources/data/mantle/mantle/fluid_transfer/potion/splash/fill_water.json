@@ -1,13 +1,15 @@
 {
-  "type": "mantle:fill_item",
-  "conditions": [
+  "fabric:load_conditions": [
     {
-      "type": "mantle:tag_filled",
-      "tag": "forge:bottles/splash"
+      "condition": "fabric:tags_populated",
+      "values": [
+        "forge:bottles/splash"
+      ]
     }
   ],
+  "type": "mantle:fill_item",
   "fluid": {
-    "amount": 500,
+    "amount": 54000,
     "tag": "mantle:water"
   },
   "input": {

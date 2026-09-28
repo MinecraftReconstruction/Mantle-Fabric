@@ -1,4 +1,5 @@
 {
+  "replace": false,
   "values": [
     "minecraft:generic_9x1",
     "minecraft:generic_9x2",

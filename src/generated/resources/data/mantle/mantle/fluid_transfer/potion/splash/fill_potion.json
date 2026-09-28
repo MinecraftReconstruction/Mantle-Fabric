@@ -1,18 +1,22 @@
 {
-  "type": "mantle:fill_nbt",
-  "conditions": [
+  "fabric:load_conditions": [
     {
-      "type": "mantle:tag_filled",
+      "condition": "fabric:tags_populated",
       "registry": "minecraft:fluid",
-      "tag": "forge:potion"
+      "values": [
+        "forge:potion"
+      ]
     },
     {
-      "type": "mantle:tag_filled",
-      "tag": "forge:bottles/splash"
+      "condition": "fabric:tags_populated",
+      "values": [
+        "forge:bottles/splash"
+      ]
     }
   ],
+  "type": "mantle:fill_nbt",
   "fluid": {
-    "amount": 250,
+    "amount": 27000,
     "tag": "forge:potion"
   },
   "input": {

@@ -1,14 +1,16 @@
 {
-  "type": "mantle:fill_item",
-  "conditions": [
+  "fabric:load_conditions": [
     {
-      "type": "mantle:tag_filled",
+      "condition": "fabric:tags_populated",
       "registry": "minecraft:fluid",
-      "tag": "forge:honey"
+      "values": [
+        "forge:honey"
+      ]
     }
   ],
+  "type": "mantle:fill_item",
   "fluid": {
-    "amount": 250,
+    "amount": 27000,
     "tag": "forge:honey"
   },
   "input": {

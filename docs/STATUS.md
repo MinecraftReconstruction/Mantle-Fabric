@@ -169,6 +169,49 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home ./gradlew c
 
 **做每条改动时的规矩**：如果替换**不是语义等价**，必须在 [BEHAVIOUR-DIFFERENCES.md](BEHAVIOUR-DIFFERENCES.md) 登记一行（类别 / 影响面 / 验证状态），并在提交信息里点名"行为差异"。
 
+## 热测试记录（2026-09-29，JDK 21，macOS）
+
+第一次把 1.11 分支真的跑起来，**抓到 2 个编译期看不出来的运行时 bug**，修完复测通过。
+
+| 项目 | 结果 |
+|---|---|
+| `./gradlew build` | **BUILD SUCCESSFUL**（含 `runDatagen`、`validateAccessWidener`）；产出 `Mantle-1.20.1-1.11.DEV.<sha>.jar`（1.8 MB） |
+| `./gradlew runServer` | **`Done (28.575s)!`**，加载 78 个模组；启动、区块生成、`/reload` 全部无异常 |
+| 日志里的 ERROR/FATAL | **0 条**（修复前：语言文件解析失败 + CCA 初始化失败 + 每次区块生成都崩） |
+
+### 这一次修掉的运行时 bug
+
+1. **`assets/mantle/lang/en_us.json` 是坏 JSON** —— 第 86 行漏了一个逗号（手写文件，datagen 不覆盖它）。
+   后果：所有本地化字符串加载失败（`Language.loadDefault` 抛 `MalformedJsonException`）。
+   这个 bug 在 1.20.1 分支上也存在，属于"一直没人真的启动过"。
+2. **CCA entrypoint 构造器丢失** —— 见 [BEHAVIOUR-DIFFERENCES.md](BEHAVIOUR-DIFFERENCES.md) 第 22 条。
+   后果：整个模组初始化失败，服务器一生成区块就 `ReportedException` 崩掉。
+   顺带修了同一文件里 NBT 读写方向写反的老 bug（第 23 条）。
+3. **`src/generated/resources` 是用 Forge 单位生成的陈年产物** —— 重跑 datagen 后 23 个流体 JSON 的数值
+   从 mB 换算到 Fabric droplet（例：`wet_sponge` 250 → 27000）。详见第 21 条。
+
+### 用控制台命令验证过的代码路径（不需要玩家在线）
+
+```
+mantle tags for id minecraft:block minecraft:stone          -> 列出 15 个 tag ✓
+mantle tags view minecraft:block minecraft:mineable/pickaxe -> 列出 ~400 个值 ✓
+mantle sources data recipes minecraft:stick                 -> "Sources for minecraft:recipes/stick.json: vanilla" ✓
+mantle sources data path minecraft:recipes/stick.json       -> 同上（两条支路都通）✓
+mantle tags add minecraft:block minecraft:mcr_test minecraft:stone    -> 写出数据包 ✓
+mantle tags remove minecraft:block minecraft:mcr_test minecraft:stone -> 写出数据包 ✓
+reload                                                       -> 生成的 tag 可见（空值，与 remove 一致）✓
+```
+
+生成的 `datapacks/SlimeKnightsGenerated/data/minecraft/tags/blocks/mcr_test.json` 内容为 `{"values": []}`，
+JSON 结构正常（**没有** Forge 的 `remove` 列表 —— 正是第 1 条差异）。
+
+### 还没验证的
+
+- **只在专用服务器上跑过**，客户端（`runClient`）的模型/书本/着色器渲染一次都没看过：
+  第 6、13、14 条（渲染类型）和第 15 条（默认精灵）都还只是"编译能过"。
+- 燃料值（第 16 条）、参数类型网络同步（第 18 条）、流体浸没判定（第 3 条）、NBT 持久化（第 23 条）
+  都需要专门写 gametest 或进游戏操作才能验证。
+
 ## 修复进度（分支 `mcr/mantle-1.11`）
 
 **158 → 0 个编译错误**，每个 checkpoint 一个提交，逐个 push（`—` 表示当时没有单独记录错误数）：

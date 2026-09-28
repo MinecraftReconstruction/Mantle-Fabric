@@ -1,12 +1,14 @@
 {
-  "type": "mantle:empty_potion",
-  "amount": 250,
-  "conditions": [
+  "fabric:load_conditions": [
     {
-      "type": "mantle:tag_filled",
-      "tag": "forge:bottles/splash"
+      "condition": "fabric:tags_populated",
+      "values": [
+        "forge:bottles/splash"
+      ]
     }
   ],
+  "type": "mantle:empty_potion",
+  "amount": 27000,
   "input": {
     "item": "minecraft:splash_potion"
   },

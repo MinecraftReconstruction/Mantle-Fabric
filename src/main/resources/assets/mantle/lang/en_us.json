@@ -82,7 +82,7 @@
   "block.mantle.tank.drained": "Drained %s mb %s",
   "block.mantle.tank.filled": "Filled %s mb %s",
   "block.mantle.tank.drained.droplets": "Drained %s droplets %s",
-  "block.mantle.tank.filled.droplets": "Filled %s droplets %s"
+  "block.mantle.tank.filled.droplets": "Filled %s droplets %s",
   "block.mantle.retextured.id": "Texture ID: %s",
 
   "item.mantle.book.click_to_open": "Right click to open"

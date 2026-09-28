@@ -1,15 +1,17 @@
 {
-  "type": "mantle:empty_potion",
-  "amount": 250,
-  "conditions": [
+  "fabric:load_conditions": [
     {
-      "type": "forge:not",
+      "condition": "fabric:not",
       "value": {
-        "type": "mantle:tag_filled",
-        "tag": "forge:bottles/lingering"
+        "condition": "fabric:tags_populated",
+        "values": [
+          "forge:bottles/lingering"
+        ]
       }
     }
   ],
+  "type": "mantle:empty_potion",
+  "amount": 27000,
   "input": {
     "item": "minecraft:lingering_potion"
   },

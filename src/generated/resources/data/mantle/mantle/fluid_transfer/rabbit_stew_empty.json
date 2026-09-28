@@ -1,14 +1,16 @@
 {
-  "type": "mantle:empty_item",
-  "conditions": [
+  "fabric:load_conditions": [
     {
-      "type": "mantle:tag_filled",
+      "condition": "fabric:tags_populated",
       "registry": "minecraft:fluid",
-      "tag": "forge:rabbit_stew"
+      "values": [
+        "forge:rabbit_stew"
+      ]
     }
   ],
+  "type": "mantle:empty_item",
   "fluid": {
-    "amount": 250,
+    "amount": 20250,
     "tag": "forge:rabbit_stew"
   },
   "input": {

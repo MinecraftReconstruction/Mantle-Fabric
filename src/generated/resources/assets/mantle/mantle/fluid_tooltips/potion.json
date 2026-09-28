@@ -3,11 +3,11 @@
   "units": [
     {
       "key": "gui.mantle.fluid.bottle",
-      "needed": 250
+      "needed": 27000
     },
     {
       "key": "gui.mantle.fluid.sip",
-      "needed": 50
+      "needed": 4050
     }
   ]
 }
