@@ -10,6 +10,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
 import org.joml.Vector3f;
 import slimeknights.mantle.client.model.util.ModelHelper;
+import slimeknights.mantle.Mantle;
 import slimeknights.mantle.data.datamap.BlockStateDataMapLoader;
 import slimeknights.mantle.data.datamap.RegistryDataMapLoader;
 import slimeknights.mantle.data.loadable.Loadable;
@@ -45,7 +46,7 @@ public class RenderItem {
   /** @deprecated use {@link #STATE_REGISTRY} */
   @Deprecated(forRemoval = true)
   public static final RegistryDataMapLoader<Block,List<RenderItem>> REGISTRY = new RegistryDataMapLoader<>(
-    "Block entity items", "mantle/model/render_items", BuiltInRegistries.BLOCK,
+    Mantle.getResource("model/render_items"), "Block entity items", "mantle/model/render_items", BuiltInRegistries.BLOCK,
     RecordLoadable.create(LIST_LOADABLE.requiredField("items", Function.identity()), Function.identity()));
   /** Data loader to fetch a list of fluid cuboids from JSON */
   public static final BlockStateDataMapLoader<List<RenderItem>> STATE_REGISTRY = new BlockStateDataMapLoader<>("Block entity items", "mantle/model/item_lists", LIST_LOADABLE);

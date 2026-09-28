@@ -1,21 +1,17 @@
 package slimeknights.mantle.item;
 
 import net.minecraft.world.item.HangingSignItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.fabricmc.fabric.api.registry.FuelRegistry;
 import net.minecraft.world.level.block.Block;
-
-import javax.annotation.Nullable;
 
 public class BurnableHangingSignItem extends HangingSignItem {
   private final int burnTime;
   public BurnableHangingSignItem(Properties propertiesIn, Block hangingBlock, Block wallBlock, int burnTime) {
     super(hangingBlock, wallBlock, propertiesIn);
     this.burnTime = burnTime;
-  }
-
-  @Override
-  public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType) {
-    return burnTime;
+    // NOTE(porting): Forge's Item#getBurnTime(ItemStack, RecipeType) hook has no Fabric counterpart. The closest
+    //  equivalent is Fabric's static fuel registry, which stores one value per item and ignores the recipe type.
+    //  See docs/BEHAVIOUR-DIFFERENCES.md.
+    FuelRegistry.INSTANCE.add(this, burnTime);
   }
 }

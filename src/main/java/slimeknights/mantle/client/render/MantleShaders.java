@@ -19,8 +19,8 @@ public class MantleShaders {
       Mantle.getResource("block_fullbright"), DefaultVertexFormat.BLOCK,
       shader -> blockFullBrightShader = shader
     );
-    event.registerShader(
-      new ShaderInstance(event.getResourceProvider(), Mantle.getResource("fluid"), DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP),
+    registry.register(
+      Mantle.getResource("fluid"), DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP,
       shader -> fluidShader = shader
     );
   }

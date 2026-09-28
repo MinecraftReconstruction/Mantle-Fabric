@@ -142,46 +142,36 @@ public static class_1921 get(class_2960 name);   // solid/cutout/cutout_mipped/t
 
 ## ⏩ 恢复点（给下一个 agent 的第一屏）
 
-**当前：158 → 16 个编译错误**（11 个 checkpoint，最新 `30e42d4f`，全部已 push 到 `mcr/mantle-1.11`）。
+**当前：编译错误 158 → 0，`./gradlew compileJava` BUILD SUCCESSFUL**（全部已 push 到 `mcr/mantle-1.11`）。
 
-**下一条命令**：
+**下一条命令**（编译已通过，接下来是出包 + 热测试）：
 
 ```bash
 cd ~/Desktop/repo/mr-mantle-fabric
 git checkout mcr/mantle-1.11 && git pull
-JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home ./gradlew compileJava \
-  -I /Users/huangwenqin/Documents/Codex/2026-09-28/ni/work/maxerrs.gradle   # 需要 -Xmaxerrs，否则看不到全部错误
+JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home ./gradlew build      # 出 jar
+JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home ./gradlew runServer  # 注册表/数据加载（run/eula.txt 已建）
 ```
 
-**剩余 16 个错误的性质**（比前面难：容易的机械替换已做完）
+需要**重新枚举错误数**时记得带 `-Xmaxerrs`：javac 默认截断到 100 条，而且符号解析失败会抑制后续错误，
+会把 158 个错误显示成 5 个（原作者提交信息里的 `6 errors left` 就是这么来的）。
 
-| 文件 | 数量 | 说明 |
-|---|---|---|
-| `client/render/MantleShaders` | 2 | Forge 的 shader 注册事件，Fabric 无对应物 → 可能要砍掉自定义 shader 并登记差异 |
-| `util/JsonHelper` | 2 | `PacketDistributor`/`PacketTarget`，Forge 网络层 → 需要改写成 Fabric 网络 |
-| `command/client/ClientSourcesCommand` | 2 | `FabricClientCommandSource` vs `CommandSourceStack` 类型不匹配 |
-| `client/screen/book/element/StructureElement` | 2 | `getRenderTypes`/`tesselateBlock` 是 Forge 的模型渲染 API |
-| `registration/deferred/ArgumentTypeDeferredRegister` | 2 | `ArgumentTypeInfos.registerByClass`（vanilla 是私有）→ 需 AW + 正确调用 |
-| `client/model/NBTKeyModel` | 1 | `addQuads(RenderType, List)` → 新签名只收 `BakedQuad...`（机械修） |
-| `client/model/util/ColoredBlockModel` | 1 | `bakedBuilder` 签名不同 |
-| `client/model/util/MantleItemLayerModel` | 1 | `UnbakedGeometryHelper.composeRootTransformIntoModelState` 缺失 |
-| `client/model/util/fabric/QuadBakingVertexConsumer` | 1 | `UnitTextureAtlasSprite`（Forge 类） |
-| `client/render/RenderItem` | 1 | `RegistryDataMapLoader<>` 泛型推断（机械修） |
-| `item/BurnableHangingSignItem` | 1 | Forge 的 `Item#getBurnTime` → Fabric 用 `FuelRegistry` |
-| `block/entity/DefaultRetexturedBlockEntity` | 1 | `getRenderData()` 返回类型与 `RetexturedHelper` 不匹配 |
-| `recipe/ingredient/FluidContainerIngredient` | 1 | 待看 |
+```bash
+JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home ./gradlew compileJava \
+  -I /Users/huangwenqin/Documents/Codex/2026-09-28/ni/work/maxerrs.gradle
+```
 
-**做每条时的规矩**：如果替换**不是语义等价**，必须在 [BEHAVIOUR-DIFFERENCES.md](BEHAVIOUR-DIFFERENCES.md) 登记一行（类别 / 影响面 / 验证状态），并在提交信息里点名"行为差异"。
+**还剩什么**（编译过了 ≠ 完成）：
+1. `./gradlew build` 出包，确认 jar 内容与 `fabric.mod.json`
+2. `./gradlew runServer` 确认注册表 / 数据加载；`runClient` 进世界看模型与书本渲染
+3. 逐条实测 [BEHAVIOUR-DIFFERENCES.md](BEHAVIOUR-DIFFERENCES.md) 里标"未验证"的条目，重点 **#3 流体浸没判定**、**#6/#13/#14 渲染类型**、**#16 燃料值**
+4. 全部验证完，才谈"建新仓库发布 / 把 jar-in-jar 的 Mantle 拆成独立前置"
 
-**编译通过之后**（不要以为编译过就完事）：
-1. `./gradlew build` 出 jar
-2. 跑专用服务器（`runServer`）确认注册表/数据加载
-3. 按 BEHAVIOUR-DIFFERENCES 里标注"未验证（需实测）"的条目逐条实测，尤其是 **#3 流体浸没判定**和 **#6 渲染类型**
-4. 全部验证完，才谈"建新仓库发布"
+**做每条改动时的规矩**：如果替换**不是语义等价**，必须在 [BEHAVIOUR-DIFFERENCES.md](BEHAVIOUR-DIFFERENCES.md) 登记一行（类别 / 影响面 / 验证状态），并在提交信息里点名"行为差异"。
 
 ## 修复进度（分支 `mcr/mantle-1.11`）
 
-**158 → 51 个编译错误**，每个 checkpoint 一个提交，逐个 push：
+**158 → 0 个编译错误**，每个 checkpoint 一个提交，逐个 push（`—` 表示当时没有单独记录错误数）：
 
 | # | 提交 | 内容 | 错误数 |
 |---|---|---|---|
@@ -193,6 +183,11 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home ./gradlew c
 | 6 | `775a058c` | `Holder` 适配（vanilla 的 `Holder` 不是 `Supplier`）、`PortingLibFluids.FLUID_TYPES` | 75 → 75 |
 | 7 | `ec24e9e3` | **access widener 补齐** Forge 用 AT 打开的私有成员；能用公开 getter 的就用 getter | 75 → 62 |
 | 8 | `9e6d0f03` | reload listener 注册（Fabric 要求 id）、`FMLEnvironment`、`BlockTags.create`、`getRecipeWidth` | 62 → 51 |
+| 9 | `c422b6f6` | `CombatHelper` 的 Forge 钩子迁到 Porting Lib（暴击事件、工具损毁） | — |
+| 10 | `06549d40` | 流体方块改用 vanilla 的 `LiquidBlock`/`BucketItem` 签名 | — |
+| 11 | `c5db9246` | 剩余的 vanilla-vs-Forge 访问器差异 | — |
+| 12 | `30e42d4f` | 剩余的访问器/查表差异，并登记行为差异 | 51 → 16 |
+| 13 | 本批（本轮） | 收尾 16 个：geometry helper、`addQuads` 签名、`bakedBuilder`、默认精灵、`ArgumentTypeInfos`、Fabric 燃料表、客户端命令参数、Forge 网络 → Mantle 自带 `PacketDistributor`、shader 注册回调 | 16 → **0** |
 
 ### 已确认的 API 映射（可直接复用）
 
@@ -214,22 +209,11 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home ./gradlew c
 
 ## 未完成
 
-1. **剩余 51 个错误**，集中在：
-   - `CombatHelper`(4)：`ForgeHooks`/`ForgeEventFactory`/`ToolActions`/`ItemStack#getSweepHitBox` —— 需要自己写垫片
-   - `client/book/StructureInfo`(4)、`element/StructureElement`(3)：`pos()`/`ModelData`（Forge 扩展）
-   - `util/JsonHelper`(3)：`PacketDistributor`/`PacketTarget`（Forge 网络）
-   - `loot/function/SetFluidLootFunction`(3)：`FluidStackLoadable` 位置变更
-   - `client/render/MantleShaders`(2)：Forge 的 shader 注册事件
-   - `block/fluid/BurningLiquidBlock`/`MobEffectLiquidBlock`/`FluidDeferredRegister`(共 5)：
-     `LiquidBlock` 在 vanilla 收 `FlowingFluid` 而非 `Supplier`
-   - `ItemStackLoadable`(2)：`readShareTag`/`getShareTag`（Forge 的 NBT 分享机制）
-   - datagen 的 `PackOutput` → `FabricDataOutput`(2)
+1. **编译已过，但一行都还没在游戏里跑过** —— 见本文件顶部"还剩什么"
 2. `./gradlew build` 出包；决定发布方式（`publishToMavenLocal` / 自有 maven / 本地 jar）
-3. 与 Tinkers 侧联调：让 `TinkersConstruct` 的端口改用 Mantle 1.11
-4. **每完成一批立刻 commit + push 作为 checkpoint**（分工要求）
-
-**修复建议顺序**：流体 → Capability → 注册表 → datagen → 零散项。前两类占了 60% 的错误，
-且与 Tinkers 侧共用同一套映射经验，先啃能复用。
+3. 逐条实测 [BEHAVIOUR-DIFFERENCES.md](BEHAVIOUR-DIFFERENCES.md)，特别是 **#3 / #6 / #13 / #14 / #16**
+4. 与 Tinkers 侧联调：让 `TinkersConstruct` 的端口改用 Mantle 1.11，并评估把 jar-in-jar 的 Mantle 拆成独立前置
+5. **每完成一批立刻 commit + push 作为 checkpoint**（分工要求）
 
 ## 已修复内容（`756dad64`）
 

@@ -7,12 +7,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import org.joml.AxisAngle4f;
@@ -21,7 +19,6 @@ import org.joml.Vector3f;
 import slimeknights.mantle.client.book.structure.StructureInfo;
 import slimeknights.mantle.client.book.structure.level.TemplateLevel;
 import slimeknights.mantle.client.render.MantleRenderTypes;
-import slimeknights.mantle.client.model.ModelData;
 import slimeknights.mantle.client.screen.book.BookScreen;
 
 import java.util.List;
@@ -115,23 +112,15 @@ public class StructureElement extends SizedBookElement {
               else
                 overlay = OverlayTexture.NO_OVERLAY;
 
-              ModelData modelData = ModelData.EMPTY;
-              BlockEntity te = structureWorld.getBlockEntity(pos);
-
-              if (te != null) {
-                // NOTE: Forge's BlockEntity#getModelData has no Fabric counterpart, so the book preview
-                // renders with empty model data. See docs/BEHAVIOUR-DIFFERENCES.md.
-                modelData = ModelData.EMPTY;
-              }
-
-              // TODO: verify that we should be using all types here
+              // NOTE: Forge's BlockEntity#getModelData and BakedModel#getRenderTypes have no Fabric counterpart, and
+              //  vanilla's ModelBlockRenderer#tesselateBlock accepts neither ModelData nor a RenderType. The book
+              //  preview therefore renders every quad into the translucent-fullbright buffer in one pass instead of
+              //  looping over the model's per-layer render types. See docs/BEHAVIOUR-DIFFERENCES.md.
               BakedModel model = blockRender.getBlockModel(state);
-              for (RenderType renderType : model.getRenderTypes(state, structureWorld.random, modelData)) {
-                blockRender.getModelRenderer().tesselateBlock(
-                  structureWorld, blockRender.getBlockModel(state), state, pos, transform,
-                  buffer.getBuffer(MantleRenderTypes.TRANSLUCENT_FULLBRIGHT), false, structureWorld.random, state.getSeed(pos),
-                  overlay, modelData, renderType);
-              }
+              blockRender.getModelRenderer().tesselateBlock(
+                structureWorld, model, state, pos, transform,
+                buffer.getBuffer(MantleRenderTypes.TRANSLUCENT_FULLBRIGHT), false, structureWorld.random, state.getSeed(pos),
+                overlay);
 
               transform.popPose();
             }

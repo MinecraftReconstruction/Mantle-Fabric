@@ -117,7 +117,9 @@ public class ColoredBlockModel extends SimpleBlockModel {
   public static BakedModel bakeModel(BlockModel owner, List<BlockElement> elements, List<ColorData> colorData, Function<Material,TextureAtlasSprite> spriteGetter, ModelState transform, ItemOverrides overrides, ResourceLocation location) {
     // iterate parts, adding to the builder
     TextureAtlasSprite particle = spriteGetter.apply(owner.getMaterial("particle"));
-    MantleBakedModel.Builder builder = bakedBuilder(owner, overrides).particle(particle);
+    // NOTE(porting): this Fabric fork of SimpleBlockModel#bakedBuilder takes isGui3d explicitly; block models are
+    //  never GUI 3d, matching Forge's implicit default.
+    MantleBakedModel.Builder builder = bakedBuilder(owner, overrides, false).particle(particle);
     int size = elements.size();
     QuadTransform quadTransformer = applyTransform(transform, owner.getRootTransform());
     Transformation transformation = transform.getRotation();

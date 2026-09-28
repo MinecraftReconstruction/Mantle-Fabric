@@ -23,6 +23,8 @@ import slimeknights.mantle.Mantle;
 import slimeknights.mantle.data.loadable.Loadable;
 import slimeknights.mantle.data.loadable.common.BlockStateLoadable;
 import slimeknights.mantle.network.NetworkWrapper;
+import slimeknights.mantle.network.channel.PacketDistributor;
+import slimeknights.mantle.network.channel.PacketDistributor.PacketTarget;
 import slimeknights.mantle.network.packet.ISimplePacket;
 
 import javax.annotation.Nullable;

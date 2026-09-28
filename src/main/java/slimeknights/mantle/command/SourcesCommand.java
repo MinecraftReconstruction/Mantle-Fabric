@@ -19,6 +19,7 @@ import slimeknights.mantle.Mantle;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /** Command to list all sources for a file in a datapack */
 public class SourcesCommand {
@@ -51,20 +52,28 @@ public class SourcesCommand {
   }
 
   /** Runs for the given ID and resource manager */
-  public static int run(CommandContext<CommandSourceStack> context, ResourceManager manager, ResourceLocation path) throws CommandSyntaxException {
+  public static int run(ResourceManager manager, ResourceLocation path, Consumer<Component> sendSuccess) throws CommandSyntaxException {
     List<String> packs = manager.getResourceStack(path).stream().map(Resource::sourcePackId).toList();
     if (packs.isEmpty()) {
       throw NOT_FOUND.create(path);
     }
     // print all the packs its found in
-    context.getSource().sendSuccess(() -> {
-      MutableComponent component = Component.translatable("command.mantle.sources.success", path);
-      for (String pack : packs) {
-        component = component.append(Component.literal("\n* " + (pack.isEmpty() ? "<unnamed>" : pack)));
-      }
-      return component;
-    }, true);
+    sendSuccess.accept(buildSourcesMessage(path, packs));
     return packs.size();
+  }
+
+  /** Runs for the given ID and resource manager, reporting through the command source */
+  public static int run(CommandContext<CommandSourceStack> context, ResourceManager manager, ResourceLocation path) throws CommandSyntaxException {
+    return run(manager, path, component -> context.getSource().sendSuccess(() -> component, true));
+  }
+
+  /** Builds the message listing all packs containing the given path */
+  public static MutableComponent buildSourcesMessage(ResourceLocation path, List<String> packs) {
+    MutableComponent component = Component.translatable("command.mantle.sources.success", path);
+    for (String pack : packs) {
+      component = component.append(Component.literal("\n* " + (pack.isEmpty() ? "<unnamed>" : pack)));
+    }
+    return component;
   }
 
 

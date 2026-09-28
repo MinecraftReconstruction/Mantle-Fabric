@@ -99,7 +99,9 @@ public class NBTKeyModel implements IUnbakedGeometry<NBTKeyModel> {
   private static BakedModel bakeModel(BlockModel owner, Material texture, Function<Material,TextureAtlasSprite> spriteGetter, Transformation rotation, ItemOverrides overrides) {
     TextureAtlasSprite sprite = spriteGetter.apply(texture);
     CompositeModel.Baked.Builder builder = CompositeModel.Baked.builder(owner, true, sprite, overrides, owner.getTransforms());
-    builder.addQuads(MantleItemLayerModel.getDefaultRenderType(owner), MantleItemLayerModel.getQuadsForSprite(-1, -1, sprite, rotation, 0));
+    // NOTE(porting): Porting Lib's CompositeModel.Builder#addQuads no longer accepts a render type, so the model
+    //  level render type hint is dropped here too. See docs/BEHAVIOUR-DIFFERENCES.md.
+    builder.addQuads(MantleItemLayerModel.getQuadsForSprite(-1, -1, sprite, rotation, 0));
     return builder.build();
   }
 

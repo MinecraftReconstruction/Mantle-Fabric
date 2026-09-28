@@ -14,11 +14,15 @@ import net.fabricmc.fabric.api.renderer.v1.material.MaterialFinder;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.Util;
 import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
+import net.minecraft.world.inventory.InventoryMenu;
 
+import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -59,7 +63,10 @@ public class QuadBakingVertexConsumer implements VertexConsumer {
 
   private int tintIndex;
   private Direction direction = Direction.DOWN;
-  private TextureAtlasSprite sprite = UnitTextureAtlasSprite.INSTANCE;
+  /** Sprite for the current quad. Forge defaulted this to a transparent unit sprite; Fabric has no such sprite so we
+   * resolve the vanilla "missingno" sprite lazily if a caller never sets one. See docs/BEHAVIOUR-DIFFERENCES.md. */
+  @Nullable
+  private TextureAtlasSprite sprite;
   private boolean shade;
   private boolean hasAmbientOcclusion;
 
@@ -135,7 +142,11 @@ public class QuadBakingVertexConsumer implements VertexConsumer {
       .disableDiffuse(!shade)
       .find();
     emitter.material(material);
-    quadConsumer.accept(emitter.toBakedQuad(sprite)); // we loose ao data here but I don't think we need it
+    TextureAtlasSprite quadSprite = sprite;
+    if (quadSprite == null) {
+      quadSprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(MissingTextureAtlasSprite.getLocation());
+    }
+    quadConsumer.accept(emitter.toBakedQuad(quadSprite)); // we loose ao data here but I don't think we need it
 //    quadConsumer.accept(new BakedQuad(quadData, tintIndex, direction, sprite, shade, hasAmbientOcclusion));
     vertexIndex = 0;
     quadData = new int[QUAD_DATA_SIZE];

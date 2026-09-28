@@ -128,3 +128,6 @@ transitive-accessible method net/minecraft/util/thread/BlockableEventLoop submit
 transitive-accessible field net/minecraft/client/resources/model/ModelManager atlases Lnet/minecraft/client/resources/model/AtlasSet;
 transitive-accessible field net/minecraft/client/resources/model/AtlasSet atlases Ljava/util/Map;
 transitive-accessible field net/minecraft/world/inventory/AbstractContainerMenu menuType Lnet/minecraft/world/inventory/MenuType;
+# Forge adds ArgumentTypeInfos#registerByClass, which is really just this private class -> info map; the argument type
+# deferred register needs it so custom argument types can be synced over the network.
+transitive-accessible field net/minecraft/commands/synchronization/ArgumentTypeInfos BY_CLASS Ljava/util/Map;

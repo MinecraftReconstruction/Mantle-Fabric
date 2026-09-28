@@ -10,7 +10,7 @@ import slimeknights.mantle.registration.RegistrationHelper;
 
 import java.util.function.Supplier;
 
-/** Register for argument types that automatically handles registering with {@link ArgumentTypeInfos#registerByClass(Class, ArgumentTypeInfo)} */
+/** Register for argument types that automatically handles registering with {@link ArgumentTypeInfos}'s class map */
 @SuppressWarnings("UnusedReturnValue")
 public class ArgumentTypeDeferredRegister extends DeferredRegisterWrapper<ArgumentTypeInfo<?,?>> {
   public ArgumentTypeDeferredRegister(String modID) {
@@ -30,7 +30,11 @@ public class ArgumentTypeDeferredRegister extends DeferredRegisterWrapper<Argume
   public <A extends ArgumentType<?>,T extends ArgumentTypeInfo.Template<A>,I extends ArgumentTypeInfo<A,T>> RegistryObject<I> register(String name, Class<? super A> argumentClass, Supplier<I> supplier) {
     return register.register(name, () -> {
       I info = supplier.get();
-      ArgumentTypeInfos.registerByClass(RegistrationHelper.genericArgumentType(argumentClass), info);
+      // NOTE(porting): Forge patches in ArgumentTypeInfos#registerByClass to expose this map; vanilla 1.20.1 has no such
+      //  method, so we widen the private BY_CLASS map with an access widener and write to it directly. Semantically
+      //  identical - it is exactly what ArgumentTypeInfos#register does besides the registry call we already perform.
+      //  See docs/BEHAVIOUR-DIFFERENCES.md.
+      ArgumentTypeInfos.BY_CLASS.put(RegistrationHelper.genericArgumentType(argumentClass), info);
       return info;
     });
   }
