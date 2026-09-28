@@ -140,6 +140,45 @@ public static class_1921 get(class_2960 name);   // solid/cutout/cutout_mipped/t
 - [x] 归属声明、状态与交接文档
 - [x] **修复 8 个 checkpoint：158 → 51 个编译错误**（详见下节）
 
+## ⏩ 恢复点（给下一个 agent 的第一屏）
+
+**当前：158 → 16 个编译错误**（11 个 checkpoint，最新 `30e42d4f`，全部已 push 到 `mcr/mantle-1.11`）。
+
+**下一条命令**：
+
+```bash
+cd ~/Desktop/repo/mr-mantle-fabric
+git checkout mcr/mantle-1.11 && git pull
+JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home ./gradlew compileJava \
+  -I /Users/huangwenqin/Documents/Codex/2026-09-28/ni/work/maxerrs.gradle   # 需要 -Xmaxerrs，否则看不到全部错误
+```
+
+**剩余 16 个错误的性质**（比前面难：容易的机械替换已做完）
+
+| 文件 | 数量 | 说明 |
+|---|---|---|
+| `client/render/MantleShaders` | 2 | Forge 的 shader 注册事件，Fabric 无对应物 → 可能要砍掉自定义 shader 并登记差异 |
+| `util/JsonHelper` | 2 | `PacketDistributor`/`PacketTarget`，Forge 网络层 → 需要改写成 Fabric 网络 |
+| `command/client/ClientSourcesCommand` | 2 | `FabricClientCommandSource` vs `CommandSourceStack` 类型不匹配 |
+| `client/screen/book/element/StructureElement` | 2 | `getRenderTypes`/`tesselateBlock` 是 Forge 的模型渲染 API |
+| `registration/deferred/ArgumentTypeDeferredRegister` | 2 | `ArgumentTypeInfos.registerByClass`（vanilla 是私有）→ 需 AW + 正确调用 |
+| `client/model/NBTKeyModel` | 1 | `addQuads(RenderType, List)` → 新签名只收 `BakedQuad...`（机械修） |
+| `client/model/util/ColoredBlockModel` | 1 | `bakedBuilder` 签名不同 |
+| `client/model/util/MantleItemLayerModel` | 1 | `UnbakedGeometryHelper.composeRootTransformIntoModelState` 缺失 |
+| `client/model/util/fabric/QuadBakingVertexConsumer` | 1 | `UnitTextureAtlasSprite`（Forge 类） |
+| `client/render/RenderItem` | 1 | `RegistryDataMapLoader<>` 泛型推断（机械修） |
+| `item/BurnableHangingSignItem` | 1 | Forge 的 `Item#getBurnTime` → Fabric 用 `FuelRegistry` |
+| `block/entity/DefaultRetexturedBlockEntity` | 1 | `getRenderData()` 返回类型与 `RetexturedHelper` 不匹配 |
+| `recipe/ingredient/FluidContainerIngredient` | 1 | 待看 |
+
+**做每条时的规矩**：如果替换**不是语义等价**，必须在 [BEHAVIOUR-DIFFERENCES.md](BEHAVIOUR-DIFFERENCES.md) 登记一行（类别 / 影响面 / 验证状态），并在提交信息里点名"行为差异"。
+
+**编译通过之后**（不要以为编译过就完事）：
+1. `./gradlew build` 出 jar
+2. 跑专用服务器（`runServer`）确认注册表/数据加载
+3. 按 BEHAVIOUR-DIFFERENCES 里标注"未验证（需实测）"的条目逐条实测，尤其是 **#3 流体浸没判定**和 **#6 渲染类型**
+4. 全部验证完，才谈"建新仓库发布"
+
 ## 修复进度（分支 `mcr/mantle-1.11`）
 
 **158 → 51 个编译错误**，每个 checkpoint 一个提交，逐个 push：
