@@ -217,7 +217,12 @@ artifacts {
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
-            artifact jar
+            // MinecraftReconstruction: `jar` is Loom's *development* output - it is compiled against Mojang's
+            // named mappings and is published under the `dev` classifier, so a downstream project reobtaining
+            // the plain artifact gets nothing at all.  The distributable is `remapJar`, which is remapped to
+            // intermediary; that is what Tinkers' Construct's `include(...)` expects (verified: the Mantle
+            // bundled inside the built Hephaestus jar references net/minecraft/class_* names).
+            artifact remapJar
             artifact sourcesJar
         }
     }
