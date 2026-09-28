@@ -3,6 +3,7 @@ package slimeknights.mantle.util;
 import io.github.fabricators_of_create.porting_lib.entity.PartEntity;
 import io.github.fabricators_of_create.porting_lib.entity.events.CriticalHitEvent;
 import io.github.fabricators_of_create.porting_lib.tool.ToolAction;
+import io.github.fabricators_of_create.porting_lib.tool.ToolActions;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.particles.ParticleTypes;
@@ -137,9 +138,11 @@ public class CombatHelper {
 
         // find critical
         boolean critical = fullyCharged && player.fallDistance > 0.0F && !player.onGround() && !player.onClimbable() && !player.isSprinting() && !player.isInWater() && !player.hasEffect(MobEffects.BLINDNESS) && !player.isPassenger() && targetLiving != null;
-        CriticalHitEvent hitResult = ForgeHooks.getCriticalHit(player, target, critical, critical ? 1.5f : 1f);
-        critical = hitResult != null;
+        // Forge's ForgeHooks.getCriticalHit is replaced by Porting Lib's critical hit event. Note that the
+        // Porting Lib event only exposes the damage modifier, so a listener cannot cancel the crit entirely.
         if (critical) {
+          CriticalHitEvent hitResult = new CriticalHitEvent(player, target, 1.5f, true);
+          hitResult.sendEvent();
           damage *= hitResult.getDamageModifier();
         }
 
@@ -197,7 +200,8 @@ public class CombatHelper {
           // sweep attack
           if (canSweep) {
             float sweepDamage = 1 + EnchantmentHelper.getSweepingDamageRatio(player) * damage;
-            for (LivingEntity living : player.level().getEntitiesOfClass(LivingEntity.class, stack.getSweepHitBox(player, target))) {
+            // Forge's IForgeItem#getSweepHitBox defaults to exactly what vanilla's sweep attack uses
+            for (LivingEntity living : player.level().getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(1.0D, 0.25D, 1.0D))) {
               double entityReachSq = Mth.square(player.getEntityReach());
               if (living != player && living != targetLiving && !player.isAlliedTo(living) && (!(living instanceof ArmorStand armorStand) || !armorStand.isMarker()) && player.distanceToSqr(living) < entityReachSq) {
                 living.knockback(0.4f, Mth.sin(player.getYRot() * TO_RADIAN), -Mth.cos(player.getYRot() * TO_RADIAN));
@@ -247,7 +251,8 @@ public class CombatHelper {
             ItemStack copy = stack.copy();
             stack.hurtEnemy(living, player);
             if (stack.isEmpty()) {
-              ForgeEventFactory.onPlayerDestroyItem(player, copy, hand);
+              // NOTE: Forge fires PlayerDestroyItemEvent here. Fabric has no equivalent event, and nothing on
+              // Fabric can listen to the Forge one, so the notification is dropped rather than reimplemented.
               player.setItemInHand(hand, ItemStack.EMPTY);
             }
           }
