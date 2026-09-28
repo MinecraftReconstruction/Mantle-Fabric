@@ -1,6 +1,8 @@
 package slimeknights.mantle.datagen;
 
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.resource.conditions.v1.ConditionJsonProvider;
+import net.fabricmc.fabric.api.resource.conditions.v1.DefaultResourceConditions;
 import net.minecraft.data.PackOutput;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -17,7 +19,6 @@ import slimeknights.mantle.fluid.transfer.AbstractFluidContainerTransferProvider
 import slimeknights.mantle.fluid.transfer.EmptyPotionTransfer;
 import slimeknights.mantle.fluid.transfer.FillFluidContainerTransfer;
 import slimeknights.mantle.fluid.transfer.FillFluidWithNBTTransfer;
-import slimeknights.mantle.recipe.condition.TagFilledCondition;
 import slimeknights.mantle.recipe.helper.ItemOutput;
 import slimeknights.mantle.recipe.ingredient.FluidIngredient;
 
@@ -51,8 +52,9 @@ public class MantleFluidTransferProvider extends AbstractFluidContainerTransferP
   }
 
   /** Adds generic fill and empty for a container */
-  private void optionalFillEmpty(String prefix, ItemLike item, ItemLike container, TagKey<Fluid> tag, int amount, boolean nbt) {
-    addFillEmpty(prefix, item, container, tag, amount, nbt, new TagFilledCondition<>(tag));
+  private void optionalFillEmpty(String prefix, ItemLike item, ItemLike container, TagKey<Fluid> tag, long amount, boolean nbt) {
+    // Forge's ICondition has no Fabric equivalent; the Transfer API world uses Fabric resource conditions
+    addFillEmpty(prefix, item, container, tag, amount, nbt, DefaultResourceConditions.tagsPopulated(tag));
   }
 
   /** Adds generic fill and empty for a container */
@@ -61,22 +63,22 @@ public class MantleFluidTransferProvider extends AbstractFluidContainerTransferP
     // for emptying, if they are absent just use glass bottles
     // for filling, if they are absent then we can't do the fill recipes
     Ingredient container;
-    ICondition potionCondition = new TagFilledCondition<>(MantleTags.Fluids.POTION);
-    ICondition[] potionConditions;
-    ICondition[] waterConditions;
+    ConditionJsonProvider potionCondition = DefaultResourceConditions.tagsPopulated(MantleTags.Fluids.POTION);
+    ConditionJsonProvider[] potionConditions;
+    ConditionJsonProvider[] waterConditions;
     if (bottleTag != null) {
       container = Ingredient.of(bottleTag);
-      ICondition containerCondition = new TagFilledCondition<>(bottleTag);
-      waterConditions = new ICondition[]{containerCondition};
-      potionConditions = new ICondition[]{potionCondition, containerCondition};
+      ConditionJsonProvider containerCondition = DefaultResourceConditions.tagsPopulated(bottleTag);
+      waterConditions = new ConditionJsonProvider[]{containerCondition};
+      potionConditions = new ConditionJsonProvider[]{potionCondition, containerCondition};
 
       // since the container tag may not be present, add two potion recipes: one when its absent that gives glass bottle, and one when present for unique bottle
-      addTransfer(prefix + "empty_glass_bottle", new EmptyPotionTransfer(Ingredient.of(filled), ItemOutput.fromItem(Items.GLASS_BOTTLE), MantleValues.BOTTLE), new NotCondition(containerCondition));
+      addTransfer(prefix + "empty_glass_bottle", new EmptyPotionTransfer(Ingredient.of(filled), ItemOutput.fromItem(Items.GLASS_BOTTLE), MantleValues.BOTTLE), DefaultResourceConditions.not(containerCondition));
       addTransfer(prefix + "empty_unique_bottle", new EmptyPotionTransfer(Ingredient.of(filled), ItemOutput.fromTag(bottleTag), MantleValues.BOTTLE), containerCondition);
     } else {
       container = Ingredient.of(Items.GLASS_BOTTLE);
-      waterConditions = new ICondition[0];
-      potionConditions = new ICondition[]{potionCondition};
+      waterConditions = new ConditionJsonProvider[0];
+      potionConditions = new ConditionJsonProvider[]{potionCondition};
       addTransfer(prefix + "empty", new EmptyPotionTransfer(Ingredient.of(filled), ItemOutput.fromItem(Items.GLASS_BOTTLE), MantleValues.BOTTLE));
     }
 
