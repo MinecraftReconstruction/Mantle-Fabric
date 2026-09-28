@@ -101,6 +101,8 @@ public class RegistryHelper {
    */
   public static <T> Supplier<T> getHolder(DefaultedRegistry<T> registry, T entry) {
     // go through the resource key: vanilla registries only look holders up by key
-    return registry.getResourceKey(entry).flatMap(registry::getHolder).orElseThrow();
+    // (vanilla's Holder is not a Supplier, unlike Forge's, so adapt it explicitly)
+    Holder.Reference<T> holder = registry.getResourceKey(entry).flatMap(registry::getHolder).orElseThrow();
+    return holder::value;
   }
 }

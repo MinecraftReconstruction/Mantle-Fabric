@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.shaders.FogShape;
 import io.github.fabricators_of_create.porting_lib.fluids.FluidType;
+import io.github.fabricators_of_create.porting_lib.fluids.PortingLibFluids;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -167,7 +168,8 @@ public final class FluidTexture {
      * @return Builder instance
      */
     public Builder wrapId(String prefix, String suffix, boolean overlay, boolean camera) {
-      return textures(JsonHelper.wrap(Objects.requireNonNull(ForgeRegistries.FLUID_TYPES.get().getKey(fluid)), prefix, suffix), overlay, camera);
+      // Forge keeps fluid types in ForgeRegistries.FLUID_TYPES; Porting Lib exposes the same registry
+      return textures(JsonHelper.wrap(Objects.requireNonNull(PortingLibFluids.FLUID_TYPES.getKey(fluid)), prefix, suffix), overlay, camera);
     }
 
     /**
