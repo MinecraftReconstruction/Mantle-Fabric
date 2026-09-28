@@ -8,6 +8,7 @@ import io.github.fabricators_of_create.porting_lib.models.CompositeModel;
 import io.github.fabricators_of_create.porting_lib.models.ItemLayerModel;
 import io.github.fabricators_of_create.porting_lib.models.geometry.IGeometryLoader;
 import io.github.fabricators_of_create.porting_lib.models.geometry.IUnbakedGeometry;
+import io.github.fabricators_of_create.porting_lib.models.util.RenderTypeUtil;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -78,13 +79,12 @@ public class MantleItemLayerModel implements IUnbakedGeometry<MantleItemLayerMod
   }
 
   /** Gets the default render type for an item layer */
-  public static RenderTypeGroup getDefaultRenderType(IGeometryBakingContext context) {
-    ResourceLocation renderTypeHint = context.getRenderTypeHint();
-    if (renderTypeHint != null) {
-      return context.getRenderType(renderTypeHint);
-    } else {
-      return new RenderTypeGroup(RenderType.translucent(), ForgeRenderTypes.ITEM_UNSORTED_TRANSLUCENT.get());
-    }
+  public static RenderType getDefaultRenderType(BlockModel context) {
+    // TODO(porting): Porting Lib 2.3.16 removed Forge's IGeometryBakingContext and RenderTypeGroup, so the
+    //  model level render type hint and the ITEM_UNSORTED_TRANSLUCENT fallback are no longer reachable here.
+    //  We currently fall back to vanilla translucent; verify translucent/cutout behaviour before release.
+    //  See docs/STATUS.md in MinecraftReconstruction/Mantle-Fabric.
+    return RenderType.translucent();
   }
 
   /**
@@ -107,13 +107,13 @@ public class MantleItemLayerModel implements IUnbakedGeometry<MantleItemLayerMod
     TextureAtlasSprite particle = spriteGetter.apply(owner.hasTexture("particle") ? owner.getMaterial("particle") : textures.get(0));
 
     // setup quad building
-    record QuadGroup(RenderTypeGroup renderType, Collection<BakedQuad> quads) {}
+    record QuadGroup(RenderType renderType, Collection<BakedQuad> quads) {}
     ReversedListBuilder<QuadGroup> quadBuilder = new ReversedListBuilder<>();
     ItemLayerPixels pixels = textures.size() == 1 ? null : new ItemLayerPixels();
     modelTransform = applyTransform(modelTransform, owner.getRootTransform());
 
     // setup render types
-    RenderTypeGroup normalRenderTypes = getDefaultRenderType(owner);
+    RenderType normalRenderTypes = getDefaultRenderType(owner);
 
     // skip the pixel tracking if using a single texture only
     Transformation transform = modelTransform.getRotation();
@@ -125,7 +125,10 @@ public class MantleItemLayerModel implements IUnbakedGeometry<MantleItemLayerMod
 
     // build final model
     CompositeModel.Baked.Builder modelBuilder = CompositeModel.Baked.builder(owner, isGui3d, particle, overrides, owner.getTransforms());
-    quadBuilder.build(quadGroup -> modelBuilder.addQuads(quadGroup.renderType, quadGroup.quads));
+    // TODO(porting): Porting Lib's CompositeModel.Builder#addQuads no longer accepts a render type, so the
+    //  per-layer render type resolved above is currently not forwarded and quads render with the vanilla
+    //  default layer. This is a known fidelity gap - see docs/STATUS.md.
+    quadBuilder.build(quadGroup -> modelBuilder.addQuads(quadGroup.quads));
     return modelBuilder.build();
   }
 
@@ -502,11 +505,12 @@ public class MantleItemLayerModel implements IUnbakedGeometry<MantleItemLayerMod
     public static final Loadable<List<LayerData>> LIST_LOADABLE = LOADABLE.list(1);
 
     /** Gets the render type for this layer from the context, falling back to the passed type if not requested */
-    public RenderTypeGroup getRenderType(IGeometryBakingContext context, RenderTypeGroup defaultType) {
+    public RenderType getRenderType(BlockModel context, RenderType defaultType) {
       if (renderType == null) {
         return defaultType;
       }
-      return context.getRenderType(renderType);
+      RenderType resolved = RenderTypeUtil.get(renderType);
+      return resolved != null ? resolved : defaultType;
     }
 
     /** @deprecated use {@link #LOADABLE} */
