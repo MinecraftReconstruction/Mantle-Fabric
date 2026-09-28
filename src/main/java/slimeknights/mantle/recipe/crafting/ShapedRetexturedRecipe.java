@@ -99,7 +99,9 @@ public class ShapedRetexturedRecipe extends ShapedRecipe {
     @Override
     public ShapedRetexturedRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
       ShapedRecipe recipe = SHAPED_RECIPE.fromJson(recipeId, json);
-      Ingredient texture = CraftingHelper.getIngredient(JsonHelper.getElement(json, "texture"), false);
+      // Porting Lib's CraftingHelper only offers the single argument form; vanilla's Ingredient.fromJson
+      // exposes the same boolean flag
+      Ingredient texture = Ingredient.fromJson(JsonHelper.getElement(json, "texture"), false);
       boolean matchAll = false;
       if (json.has("match_all")) {
         matchAll = json.get("match_all").getAsBoolean();

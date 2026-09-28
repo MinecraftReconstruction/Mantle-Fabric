@@ -21,6 +21,7 @@ import org.joml.Vector3f;
 import slimeknights.mantle.client.book.structure.StructureInfo;
 import slimeknights.mantle.client.book.structure.level.TemplateLevel;
 import slimeknights.mantle.client.render.MantleRenderTypes;
+import slimeknights.mantle.client.model.ModelData;
 import slimeknights.mantle.client.screen.book.BookScreen;
 
 import java.util.List;
@@ -118,7 +119,9 @@ public class StructureElement extends SizedBookElement {
               BlockEntity te = structureWorld.getBlockEntity(pos);
 
               if (te != null) {
-                modelData = te.getModelData();
+                // NOTE: Forge's BlockEntity#getModelData has no Fabric counterpart, so the book preview
+                // renders with empty model data. See docs/BEHAVIOUR-DIFFERENCES.md.
+                modelData = ModelData.EMPTY;
               }
 
               // TODO: verify that we should be using all types here

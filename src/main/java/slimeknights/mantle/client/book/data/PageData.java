@@ -175,7 +175,8 @@ public class PageData implements IDataItem, IConditional {
 
   @Override
   public boolean isConditionMet() {
-    return condition.test(DataLoadedConditionContext.INSTANCE);
+    // Forge's condition context is gone; the Fabric condition resolves against the loaded registries itself
+    return condition.test();
   }
 
   private static class PageTypeOverrider {

@@ -3,7 +3,7 @@ package slimeknights.mantle.data.datamap;
 import com.google.gson.JsonObject;
 import net.minecraft.core.Registry;
 import net.minecraft.data.CachedOutput;
-import net.minecraft.data.PackOutput;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.data.PackOutput.Target;
 import net.minecraft.resources.ResourceLocation;
 import slimeknights.mantle.data.GenericDataProvider;
@@ -22,14 +22,14 @@ public abstract class RegistryDataMapProvider<R,D> extends GenericDataProvider {
   private final String modId;
   private final Map<ResourceLocation,Supplier<JsonObject>> entries = new HashMap<>();
 
-  public RegistryDataMapProvider(PackOutput output, Target type, Registry<R> registry, RecordLoadable<D> dataLoader, String folder, String modId) {
+  public RegistryDataMapProvider(FabricDataOutput output, Target type, Registry<R> registry, RecordLoadable<D> dataLoader, String folder, String modId) {
     super(output, type, folder);
     this.registry = registry;
     this.dataLoader = dataLoader;
     this.modId = modId;
   }
 
-  public RegistryDataMapProvider(PackOutput output, Target type, RegistryDataMapLoader<R,D> dataLoader, String modId) {
+  public RegistryDataMapProvider(FabricDataOutput output, Target type, RegistryDataMapLoader<R,D> dataLoader, String modId) {
     this(output, type, dataLoader.getRegistry(), dataLoader.getDataLoader(), dataLoader.getFolder(), modId);
   }
 

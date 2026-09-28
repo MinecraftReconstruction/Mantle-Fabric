@@ -5,7 +5,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
-import net.minecraft.data.PackOutput;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.data.PackOutput.Target;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
@@ -28,13 +28,13 @@ public abstract class BlockStateDataMapProvider<D> extends GenericDataProvider {
   private final String modId;
   private final Map<Block,DataMap> blocks = new HashMap<>();
   private final Map<ResourceLocation,D> entries = new HashMap<>();
-  public BlockStateDataMapProvider(PackOutput output, Target type, String folder, Loadable<D> dataLoader, String modId) {
+  public BlockStateDataMapProvider(FabricDataOutput output, Target type, String folder, Loadable<D> dataLoader, String modId) {
     super(output, type, folder);
     this.dataLoader = dataLoader;
     this.modId = modId;
   }
 
-  public BlockStateDataMapProvider(PackOutput output, Target type, BlockStateDataMapLoader<D> registry, String modId) {
+  public BlockStateDataMapProvider(FabricDataOutput output, Target type, BlockStateDataMapLoader<D> registry, String modId) {
     this(output, type, registry.getFolder(), registry.getDataLoader(), modId);
   }
 

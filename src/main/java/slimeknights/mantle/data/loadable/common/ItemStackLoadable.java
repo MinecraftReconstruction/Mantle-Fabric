@@ -155,7 +155,9 @@ public class ItemStackLoadable {
         return ItemStack.EMPTY;
       }
       ItemStack stack = new ItemStack(item, count);
-      stack.readShareTag(nbt);
+      // NOTE: Forge sends a partial "share tag" over the network; vanilla has no such concept, so the full
+      // item NBT is used instead. See docs/BEHAVIOUR-DIFFERENCES.md.
+      stack.setTag(nbt);
       return stack;
     }
 
@@ -165,7 +167,7 @@ public class ItemStackLoadable {
       if (this == READ_COUNT) {
         COUNT.encode(buffer, stack);
       }
-      buffer.writeNbt(stack.getShareTag());
+      buffer.writeNbt(stack.getTag());
     }
   }
 }
