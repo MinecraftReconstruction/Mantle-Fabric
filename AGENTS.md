@@ -11,7 +11,7 @@
 
 ## 主战场
 
-分支 **`MinecraftReconstruction/mantle-1.11`**（不是默认分支 `1.20.1`）。它承载 Mantle **1.11** 的 Fabric 移植工作。
+分支 **`mcr/mantle-1.11`**（不是默认分支 `1.20.1`）。它承载 Mantle **1.11** 的 Fabric 移植工作。
 
 ## 分支约定（重要）
 
@@ -19,9 +19,9 @@
 |---|---|---|
 | `1.20.1`（默认）、`1.20.1-update`、`1.21.1`、`1.20-dev`、`1.20.1-port` | **原作者 AlphaMode** | **不要在它们上面直接提交**。它们代表上游的工作，保持原样才能干净地对照与拉取更新 |
 | `1.11`、`1.12`、`1.15`… | **上游 SlimeKnights** | 这些是 **Forge** 分支，不是 Fabric 适配，仅作参考 |
-| **`MinecraftReconstruction/*`** | **本组织** | 我们的全部改动都在这里。当前工作分支为 `MinecraftReconstruction/mantle-1.11`，基点 = `1.20.1-update` 的 tip `eb1e9a5a` |
+| **`mcr/*`**（`mcr` = MinecraftReconstruction） | **本组织** | 我们的全部改动都在这里。当前工作分支为 `mcr/mantle-1.11`，基点 = `1.20.1-update` 的 tip `eb1e9a5a` |
 
-这样做的好处：`git diff eb1e9a5a..MinecraftReconstruction/mantle-1.11` 就是"我们到底做了什么"的完整答案
+这样做的好处：`git diff eb1e9a5a..mcr/mantle-1.11` 就是"我们到底做了什么"的完整答案
 （当前净值：5 个文件，+292/−29，其中真正的代码改动只有 `MantleItemLayerModel.java` 一个文件）。
 提交信息里也要写清是 AI 生成的改动。
 
@@ -29,7 +29,7 @@
 
 `MinecraftReconstruction/Mantle-Fabric` 上的 **`1.20.1-update` 分支目前被我们叠了提交**（早期误提交所致）。
 理想状态是把它还原到 Alpha 的原始 tip `eb1e9a5a`，让上游分支保持纯净——这需要一次 force push，
-**待人工确认后执行**。在此之前，请以 `MinecraftReconstruction/mantle-1.11` 为工作分支，不要继续往 `1.20.1-update` 上提交。
+**待人工确认后执行**。在此之前，请以 `mcr/mantle-1.11` 为工作分支，不要继续往 `1.20.1-update` 上提交。
 
 ## 硬性规则
 
