@@ -7,6 +7,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.MapColor;
 import slimeknights.mantle.registration.deferred.FluidDeferredRegister;
 
@@ -19,16 +20,29 @@ public class BurningLiquidBlock extends LiquidBlock {
   private final int burnTime;
   /** Damage from being in the fluid, lava uses 4 */
   private final float damage;
+  /** The fluid this block represents; vanilla's LiquidBlock keeps its copy private */
+  private final FlowingFluid fluid;
   public BurningLiquidBlock(Supplier<? extends FlowingFluid> supplier, Properties properties, int burnTime, float damage) {
-    super(supplier, properties);
+    // vanilla's LiquidBlock takes the fluid instance directly; the supplier only exists to defer creation
+    super(supplier.get(), properties);
+    this.fluid = supplier.get();
     this.burnTime = burnTime;
     this.damage = damage;
+  }
+
+  /**
+   * Approximation of Forge's {@code Entity#getFluidTypeHeight} check: the entity must actually overlap the
+   * fluid surface instead of merely clipping the block.
+   */
+  private boolean isInFluid(Level level, BlockPos pos, Entity entity) {
+    FluidState state = level.getFluidState(pos);
+    return state.getType().isSame(this.fluid) && entity.getY() < pos.getY() + state.getOwnHeight();
   }
 
   @SuppressWarnings("deprecation")  // useless annotation on block methods
   @Override
   public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
-    if (!entity.fireImmune() && entity.getFluidTypeHeight(getFluid().getFluidType()) > 0) {
+    if (!entity.fireImmune() && isInFluid(level, pos, entity)) {
       entity.setSecondsOnFire(burnTime);
       if (entity.hurt(entity.damageSources().lava(), damage)) {
         entity.playSound(SoundEvents.GENERIC_BURN, 0.4F, 2.0F + level.random.nextFloat() * 0.4F);
