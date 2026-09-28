@@ -11,7 +11,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.material.Fluids;
 import slimeknights.mantle.Mantle;
 import slimeknights.mantle.data.loadable.common.IngredientLoadable;
-import slimeknights.mantle.data.loadable.primitive.IntLoadable;
+import slimeknights.mantle.data.loadable.primitive.LongLoadable;
 import slimeknights.mantle.data.loadable.record.RecordLoadable;
 import slimeknights.mantle.datagen.MantleTags;
 import slimeknights.mantle.recipe.helper.FluidOutput;
@@ -25,10 +25,10 @@ public class EmptyPotionTransfer extends EmptyFluidContainerTransfer {
   public static final RecordLoadable<EmptyPotionTransfer> DESERIALIZER = RecordLoadable.create(
     IngredientLoadable.DISALLOW_EMPTY.requiredField("input", t -> t.input),
     ItemOutput.Loadable.OPTIONAL_ITEM.emptyField("result", t -> t.result),
-    IntLoadable.FROM_ONE.requiredField("amount", t -> t.fluid.getAmount()),
+    LongLoadable.FROM_ONE.requiredField("amount", t -> t.fluid.getAmount()),
     EmptyPotionTransfer::new);
 
-  public EmptyPotionTransfer(Ingredient input, ItemOutput filled, int amount) {
+  public EmptyPotionTransfer(Ingredient input, ItemOutput filled, long amount) {
     super(input, filled, FluidOutput.fromFluid(Fluids.WATER, amount));
   }
 

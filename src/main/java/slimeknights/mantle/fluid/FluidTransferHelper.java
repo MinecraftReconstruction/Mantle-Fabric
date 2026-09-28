@@ -3,8 +3,11 @@ package slimeknights.mantle.fluid;
 import io.github.fabricators_of_create.porting_lib.fluids.FluidStack;
 import io.github.fabricators_of_create.porting_lib.fluids.sound.SoundAction;
 import io.github.fabricators_of_create.porting_lib.fluids.sound.SoundActions;
+import io.github.fabricators_of_create.porting_lib.mixin.accessors.common.accessor.BucketItemAccessor;
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -188,14 +191,18 @@ public class FluidTransferHelper {
   public static FluidInteractionResult interactWithFilledBucket(Level world, BlockPos pos, Storage<FluidVariant> handler, Player player, InteractionHand hand, Direction offset) {
     ItemStack held = player.getItemInHand(hand);
     if (held.getItem() instanceof BucketItem bucket) {
-      Fluid fluid = bucket.getFluid();
+      // vanilla BucketItem keeps its fluid private; Porting Lib's accessor exposes it again
+      Fluid fluid = ((BucketItemAccessor) bucket).port_lib$getContent();
       if (fluid != Fluids.EMPTY) {
         if (!world.isClientSide) {
-          FluidStack fluidStack = new FluidStack(bucket.getFluid(), FluidConstants.BUCKET);
+          FluidStack fluidStack = new FluidStack(fluid, FluidConstants.BUCKET);
           // must empty the whole bucket
-          if (handler.fill(fluidStack, FluidAction.SIMULATE) == FluidConstants.BUCKET) {
+          if (StorageUtil.simulateInsert(handler, fluidStack.getType(), FluidConstants.BUCKET, null) == FluidConstants.BUCKET) {
             SoundEvent sound = getEmptySound(fluidStack);
-            handler.fill(fluidStack, FluidAction.EXECUTE);
+            try (Transaction tx = Transaction.openOuter()) {
+              handler.insert(fluidStack.getType(), FluidConstants.BUCKET, tx);
+              tx.commit();
+            }
             bucket.checkExtraContent(player, world, held, pos.relative(offset));
             world.playSound(null, pos, sound, SoundSource.BLOCKS, 1.0F, 1.0F);
             player.displayClientMessage(Component.translatable(KEY_FILLED, COMMA_FORMAT.format(FluidConstants.BUCKET), fluidStack.getDisplayName()), true);
@@ -241,13 +248,10 @@ public class FluidTransferHelper {
    */
   public static FluidInteractionResult interactWithContainer(Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
     if (!player.getItemInHand(hand).isEmpty()) {
-      BlockEntity te = world.getBlockEntity(pos);
-      if (te != null) {
-        // TE must have a capability
-        LazyOptional<IFluidHandler> teCapability = te.getCapability(ForgeCapabilities.FLUID_HANDLER, hit.getDirection());
-        if (teCapability.isPresent()) {
-          return interactWithContainer(world, pos, teCapability.orElse(EmptyFluidHandler.INSTANCE), player, hand);
-        }
+      // Forge's FLUID_HANDLER capability does not exist on Fabric; look the storage up via the Transfer API
+      Storage<FluidVariant> handler = FluidStorage.SIDED.find(world, pos, hit.getDirection());
+      if (handler != null) {
+        return interactWithContainer(world, pos, handler, player, hand);
       }
     }
     return FluidInteractionResult.MISSING;
@@ -269,10 +273,10 @@ public class FluidTransferHelper {
     if (FluidContainerTransferManager.INSTANCE.mayHaveTransfer(stack)) {
       // only actually transfer on the serverside, client just has items
       if (!world.isClientSide) {
-        FluidStack currentFluid = teHandler.drain(Integer.MAX_VALUE, FluidAction.SIMULATE);
+        FluidStack currentFluid = TransferUtil.firstCopyOrEmpty(teHandler);
         IFluidContainerTransfer transfer = FluidContainerTransferManager.INSTANCE.getTransfer(stack, currentFluid);
         if (transfer != null) {
-          TransferResult result = transfer.transfer(stack, currentFluid, teHandler, TransferDirection.AUTO);
+          TransferResult result = transfer.transfer(stack, currentFluid, teHandler, TransferDirection.AUTO, null);
           if (result != null) {
             if (result.didFill()) {
               playFillSound(world, pos, player, result.fluid());
@@ -287,13 +291,13 @@ public class FluidTransferHelper {
       return FluidInteractionResult.CONTAINER;
     }
 
-    // if the item has a capability, do a direct transfer
-    ItemStack copy = ItemHandlerHelper.copyStackWithSize(stack, 1);
-    LazyOptional<IFluidHandlerItem> itemCapability = copy.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM);
-    if (itemCapability.isPresent()) {
+    // if the item has a fluid storage, do a direct transfer
+    ItemStack copy = stack.copyWithCount(1);
+    ContainerItemContext itemContext = ContainerItemContext.withInitial(copy);
+    Storage<FluidVariant> itemHandler = FluidStorage.ITEM.find(copy, itemContext);
+    if (itemHandler != null) {
       FluidInteractionResult result = FluidInteractionResult.CONTAINER;
       if (!world.isClientSide) {
-        IFluidHandlerItem itemHandler = itemCapability.resolve().orElseThrow();
         // first, try filling the TE from the item
         FluidStack transferred = tryTransfer(itemHandler, teHandler, Integer.MAX_VALUE);
         if (!transferred.isEmpty()) {
@@ -309,7 +313,7 @@ public class FluidTransferHelper {
         }
         // if either worked, update the player's inventory
         if (!transferred.isEmpty()) {
-          player.setItemInHand(hand, ItemUtils.createFilledResult(stack, player, itemHandler.getContainer()));
+          player.setItemInHand(hand, ItemUtils.createFilledResult(stack, player, itemContext.getItemVariant().toStack()));
         }
       }
       return result;
@@ -347,14 +351,10 @@ public class FluidTransferHelper {
    */
   public static boolean interactWithTank(Level world, BlockPos pos, Player player, InteractionHand hand, Direction hit, Direction offset) {
     if (!player.getItemInHand(hand).isEmpty()) {
-      BlockEntity te = world.getBlockEntity(pos);
-      if (te != null) {
-        LazyOptional<IFluidHandler> teCapability = te.getCapability(ForgeCapabilities.FLUID_HANDLER, hit);
-        if (teCapability.isPresent()) {
-          IFluidHandler handler = teCapability.orElse(EmptyFluidHandler.INSTANCE);
-          return interactWithContainer(world, pos, handler, player, hand).hasContainer()
-            || interactWithFilledBucket(world, pos, handler, player, hand, offset).hasContainer();
-        }
+      Storage<FluidVariant> handler = FluidStorage.SIDED.find(world, pos, hit);
+      if (handler != null) {
+        return interactWithContainer(world, pos, handler, player, hand).hasContainer()
+          || interactWithFilledBucket(world, pos, handler, player, hand, offset).hasContainer();
       }
     }
     return false;
@@ -385,10 +385,10 @@ public class FluidTransferHelper {
       // fallback to JSON based transfer
       if (FluidContainerTransferManager.INSTANCE.mayHaveTransfer(stack)) {
         // only actually transfer on the serverside, client just has items
-        FluidStack currentFluid = teHandler.drain(Integer.MAX_VALUE, FluidAction.SIMULATE);
+        FluidStack currentFluid = TransferUtil.firstCopyOrEmpty(teHandler);
         IFluidContainerTransfer transfer = FluidContainerTransferManager.INSTANCE.getTransfer(stack, currentFluid);
         if (transfer != null) {
-          TransferResult result = transfer.transfer(stack, currentFluid, teHandler, direction);
+          TransferResult result = transfer.transfer(stack, currentFluid, teHandler, direction, null);
           if (result != null) {
             stack.shrink(1);
             return result;
@@ -396,11 +396,11 @@ public class FluidTransferHelper {
         }
       }
 
-      // if the item has a capability, do a direct transfer
-      ItemStack copy = ItemHandlerHelper.copyStackWithSize(stack, 1);
-      LazyOptional<IFluidHandlerItem> itemCapability = copy.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM);
-      if (itemCapability.isPresent()) {
-        IFluidHandlerItem itemHandler = itemCapability.resolve().orElseThrow();
+      // if the item has a fluid storage, do a direct transfer
+      ItemStack copy = stack.copyWithCount(1);
+      ContainerItemContext itemContext = ContainerItemContext.withInitial(copy);
+      Storage<FluidVariant> itemHandler = FluidStorage.ITEM.find(copy, itemContext);
+      if (itemHandler != null) {
         // first, try filling the TE from the item
         FluidStack transferred = FluidStack.EMPTY;
         // reverse means try TE to item first
@@ -422,7 +422,7 @@ public class FluidTransferHelper {
         // if either worked, update the player's inventory
         if (!transferred.isEmpty()) {
           stack.shrink(1);
-          return new TransferResult(itemHandler.getContainer(), transferred, didFill);
+          return new TransferResult(itemContext.getItemVariant().toStack(), transferred, didFill);
         }
       }
     }
@@ -458,7 +458,7 @@ public class FluidTransferHelper {
         // only actually transfer on the serverside, client just has items
         IFluidContainerTransfer transfer = FluidContainerTransferManager.INSTANCE.getTransfer(stack, fluid);
         if (transfer != null) {
-          TransferResult result = transfer.transfer(stack, fluid, teHandler, TransferDirection.FILL_ITEM);
+          TransferResult result = transfer.transfer(stack, fluid, teHandler, TransferDirection.FILL_ITEM, null);
           if (result != null) {
             stack.shrink(1);
             return result;
@@ -466,16 +466,16 @@ public class FluidTransferHelper {
         }
       }
 
-      // if the item has a capability, do a direct transfer
-      ItemStack copy = ItemHandlerHelper.copyStackWithSize(stack, 1);
-      LazyOptional<IFluidHandlerItem> itemCapability = copy.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM);
-      if (itemCapability.isPresent()) {
-        IFluidHandlerItem itemHandler = itemCapability.resolve().orElseThrow();
+      // if the item has a fluid storage, do a direct transfer
+      ItemStack copy = stack.copyWithCount(1);
+      ContainerItemContext itemContext = ContainerItemContext.withInitial(copy);
+      Storage<FluidVariant> itemHandler = FluidStorage.ITEM.find(copy, itemContext);
+      if (itemHandler != null) {
         // first, try filling the TE from the item
-        FluidStack transferred = tryTransfer(teHandler, itemHandler, fluid.copy());
+        FluidStack transferred = tryTransfer(teHandler, itemHandler, fluid.copy(), null);
         if (!transferred.isEmpty()) {
           stack.shrink(1);
-          return new TransferResult(itemHandler.getContainer(), transferred, true);
+          return new TransferResult(itemContext.getItemVariant().toStack(), transferred, true);
         }
       }
     }
