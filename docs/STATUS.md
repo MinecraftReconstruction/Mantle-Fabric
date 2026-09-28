@@ -26,8 +26,9 @@
 "哪些是原作者的、哪些是 AI 生成的"。当前该 diff 为：**5 个文件，+292/−29**，真正的代码改动只有
 `MantleItemLayerModel.java`。
 
-⚠️ 遗留问题：`MinecraftReconstruction/Mantle-Fabric` 的 `1.20.1-update` 分支早期被误叠了我们的提交，
-理想状态是 force push 还原到 `eb1e9a5a`（**需人工确认**）。详见 [AGENTS.md](../AGENTS.md)。
+✅ **已于 2026-09-28 清理**：我们 fork 的 `1.20.1-update` 已 force push 还原到 Alpha 的原始 tip `eb1e9a5a`，
+与上游完全一致；我们的全部改动都在 `mcr/mantle-1.11`。
+默认分支 `1.20.1` **刻意保留**文档提交（仅新增文档、未改代码），以保证仓库首页能看到归属与 "largely vibed" 声明。
 
 ## `1.20.1-update` 的现状（已复现）
 
