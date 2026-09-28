@@ -19,7 +19,8 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "slimeknights.mantle.Mantle"
+      "slimeknights.mantle.Mantle",
+      "slimeknights.mantle.testing.MantleSelfTest"
     ],
     "client": [
       "slimeknights.mantle.client.ClientEvents::onConstruct"

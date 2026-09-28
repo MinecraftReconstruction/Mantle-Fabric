@@ -235,6 +235,32 @@ JSON 结构正常（**没有** Forge 的 `remove` 列表 —— 正是第 1 条�
 - **需要专门写测试**：参数类型网络同步（第 18 条，需要客户端↔服务端握手）、NBT 持久化（第 23 条，
   需要存档/重载）、流体浸没（第 3 条）。
 
+### 自动化自检（2026-09-29 加入，`MantleSelfTest`）
+
+上面几条"只能靠下游模组测"的差异，现在由 `slimeknights.mantle.testing.MantleSelfTest` 自己造出被测对象来断言。
+它**只在 Fabric 报 development 环境时运行**，发行版 jar 里等于不存在；跑 `./gradlew runServer` 后看日志里的
+`[selftest]` 行即可。
+
+最近一次结果（`Done (7.371s)` 之后）：
+
+```
+[selftest] PASS  fuel/#16 registry entry          (FuelRegistry.get(BurnableHangingSignItem) = 300, expected 300)
+[selftest] PASS  fuel/#16 furnace burns it        (fuel slot after 341 ticks = 0 air)
+[selftest] PASS  argument/#18 class recognised    (ArgumentTypeInfos.isClassRecognized(SelfTestArgument) = true)
+[selftest] PASS  argument/#18 info lookup         (ArgumentTypeInfos.byClass(...) = SingletonArgumentInfo@...)
+[selftest] PASS  cooldown/#22 no-arg constructor  (new OffhandCooldownTracker() succeeded)
+[selftest] PASS  cooldown/#23 writeToNbt writes   (tag = {attackReady:40,enabled:0,lastCooldown:40})
+[selftest] PASS  cooldown/#23 readFromNbt restores(cooldown 0.0 -> cleared 1.0 -> restored 0.0)
+[selftest] PASS  cooldown/component attaches to a player
+[selftest] PASS  cooldown/component NBT round trip
+[selftest] summary: 9 passed, 0 failed
+```
+
+**这个自检本身还抓到一个真 bug**：一开始它只 `new` 了一个 `Item` 而没有注册，`Item` 的构造器会在物品注册表里
+留下一个未绑定的 *intrusive holder*，于是 `MappedRegistry#freeze` 抛
+`Some intrusive holders were not registered: [Reference{null=air}]`，**整个服务器连 datapack 都加载不了**。
+改成正式注册后恢复正常。这条留给下游作者的经验是：**不要脱开注册表去 new Item/Block**。
+
 ## 修复进度（分支 `mcr/mantle-1.11`）
 
 **158 → 0 个编译错误**，每个 checkpoint 一个提交，逐个 push（`—` 表示当时没有单独记录错误数）：

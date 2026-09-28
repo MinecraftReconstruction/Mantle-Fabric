@@ -66,6 +66,12 @@
 `mantle tags for id minecraft:block minecraft:stone`、`mantle sources data recipes minecraft:stick`
 这类命令，能覆盖大部分移植过的代码路径。
 
+### 自检（改完这几块一定要跑）
+
+`slimeknights.mantle.testing.MantleSelfTest` 在 **development 环境**下自动运行，跑 `./gradlew runServer`
+然后 `grep selftest`。它覆盖燃料注册、参数类型注册、CCA 构造器、NBT 读写方向这四块"没有下游模组就测不到"的
+逻辑。给发行版无影响（`isDevelopmentEnvironment()` 门控）。新增这类改动时请顺手加一条断言。
+
 ## 文档纪律
 
 - 每修完一项就更新 `docs/STATUS.md`（修了什么、怎么验证、还剩什么）
