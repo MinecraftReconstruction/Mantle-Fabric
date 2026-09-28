@@ -23,7 +23,7 @@
 
 `Alpha-s-Stuff/Mantle` 里的 `1.20.1-update` 是 **AlphaMode 的工作分支**，本仓库 fork 时一并带入。
 我们的所有改动都应落在 `mcr/*` 分支上，这样 `git diff eb1e9a5a..mcr/mantle-1.11` 就能一眼看出
-"哪些是原作者的、哪些是 AI 生成的"。当前该 diff 为：**5 个文件，+292/−29**，真正的代码改动只有
+"哪些是原作者的、哪些是 AI agent 改的"。当前该 diff 为：**5 个文件，+292/−29**，真正的代码改动只有
 `MantleItemLayerModel.java`。
 
 ✅ **已于 2026-09-28 清理**：我们 fork 的 `1.20.1-update` 已 force push 还原到 Alpha 的原始 tip `eb1e9a5a`，

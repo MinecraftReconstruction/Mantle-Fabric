@@ -1,11 +1,11 @@
 # AGENTS.md — 给接手的 AI 智能体
 
-本仓库是 `MinecraftReconstruction` 组织下的**非官方、AI 生成（largely vibed）** Mantle Fabric 移植工程，
+本仓库是 `MinecraftReconstruction` 组织下的**非官方、由 AI 大幅辅助完成（"largely vibed"）**的 Mantle Fabric 移植工程，
 是 Tinkers' Construct 同步的前置卡点。
 
 ## 动手之前
 
-1. 读 [ATTRIBUTION.md](ATTRIBUTION.md)（归属与风险声明，**不得**删改其中"非官方 / AI 生成 / 未经原作者审核"的表述）
+1. 读 [ATTRIBUTION.md](ATTRIBUTION.md)（归属与风险声明，**不得**删改其中"非官方 / AI 辅助 / 未经原作者审核"的表述）
 2. 读 [docs/STATUS.md](docs/STATUS.md)（进度、已定位的根因、待修清单）
 3. 姊妹仓库 `MinecraftReconstruction/TinkersConstruct` 的 `docs/PLAN.md` 有整体路线
 4. 本地化相关工作读 [docs/I18N.md](docs/I18N.md)（含 AI 翻译范围的声明）
@@ -29,20 +29,20 @@
 | `1.11`、`1.12`、`1.15`… | **上游 SlimeKnights** | **Forge** 分支，不是 Fabric 适配，仅作参考 |
 
 这样做的好处：`git diff eb1e9a5a..mcr/mantle-1.11` 就是"我们到底做了什么"的完整答案。
-提交信息里也要写清是 AI 生成的改动。
+提交信息里也要写清这是 AI agent 实施的改动（上游代码本身仍是原作者的）。
 
 ### 已完成的清理
 
 - **2026-09-28**：我们 fork 的 `1.20.1-update` 曾被误叠 7 个提交，已 force push 还原到 Alpha 的原始 tip
   `eb1e9a5a`（`6a26c223 → eb1e9a5a`）。我们的全部内容都在 `mcr/mantle-1.11` 上，没有丢失。
 - **`1.20.1`（默认分支）刻意保留我们的文档提交**：只新增了 `ATTRIBUTION.md` / `AGENTS.md` / `docs/` 与 README 说明，
-  **没有改动任何代码**。理由：仓库首页必须能看到"非官方 / AI 生成 / 未获上游背书"的声明，否则访客会误判这是官方仓库。
+  **没有改动任何代码**。理由：仓库首页必须能看到"非官方 / AI 辅助 / 未获上游背书"的声明，否则访客会误判这是官方仓库。
   代码改动一律只进 `mcr/*` 分支。
 
 ## 硬性规则
 
 - `LICENSE`（MIT，SlimeKnights 版权）不得修改或删除；第三方依赖（Porting Lib 为 LGPL）条款必须遵守
-- 署名要求同 `ATTRIBUTION.md`：SlimeKnights 与 AlphaMode 是原作者，我们只是 AI 生成的衍生工作
+- 署名要求同 `ATTRIBUTION.md`：SlimeKnights 与 AlphaMode 是原作者，我们的迁移改动由 AI agent 在人类指导下实施
 - 不得暗示原作者认可或背书本仓库
 - 没跑过验证就不算做完
 

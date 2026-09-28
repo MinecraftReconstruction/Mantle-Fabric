@@ -1,10 +1,10 @@
 > [!IMPORTANT]
-> **Unofficial, largely vibed (AI-generated) port. Not affiliated with, reviewed by, or endorsed by the original authors.**
-> 非官方、由 AI 大幅生成（largely vibed）的移植工程，与原作者没有任何隶属或背书关系。
+> **Unofficial, largely AI-assisted ("vibed") port. Not affiliated with, reviewed by, or endorsed by the original authors.**
+> 非官方、由 AI 大幅辅助完成（"largely vibed"）的移植工程，与原作者没有任何隶属或背书关系。
 > Credits → [ATTRIBUTION.md](ATTRIBUTION.md) · Status → [docs/STATUS.md](docs/STATUS.md) · Behaviour differences → [docs/BEHAVIOUR-DIFFERENCES.md](docs/BEHAVIOUR-DIFFERENCES.md) · Localisation → [docs/I18N.md](docs/I18N.md)
 > For a stable Mantle, use [SlimeKnights/Mantle](https://github.com/SlimeKnights/Mantle) (Forge) or [Alpha-s-Stuff/Mantle](https://github.com/Alpha-s-Stuff/Mantle) (Fabric).
 
-![Mantle logo](https://raw.github.com/SlimeKnights/Mantle/master/src/main/resources/Mantle.png)
+![Mantle logo](src/main/resources/Mantle.png)
 # Mantle (Fabric) — Mantle 1.11 for Minecraft 1.20.1
 
 **Shared code for Fabric mods.**
@@ -100,8 +100,14 @@ of any mods involved, steps to reproduce, and the full log/crash report.
 ## Credits and licence
 
 All credit for Mantle goes to **SlimeKnights** (original Forge library) and **AlphaMode** (the Fabric port this is
-based on). This port's changes are AI-generated under human direction and are labelled as such throughout the
-repository — see [ATTRIBUTION.md](ATTRIBUTION.md). Nothing here implies endorsement by the original authors.
+based on). The upstream code is theirs; what the MinecraftReconstruction organisation changed is the migration
+itself — **the MinecraftReconstruction migration work is largely AI-assisted and was carried out under human
+direction, review, and validation**, and is labelled as such throughout the repository. See
+[ATTRIBUTION.md](ATTRIBUTION.md). Nothing here implies endorsement by the original authors.
+
+The logo above is the upstream project's asset, redistributed from the MIT-licensed upstream repository purely to
+identify what this port is a port *of*. It remains SlimeKnights' work and mark; it is not this project's own
+branding, and we will replace it on request.
 
 ## Licenses
 The MIT License (MIT)

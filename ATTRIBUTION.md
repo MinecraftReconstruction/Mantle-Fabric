@@ -2,12 +2,19 @@
 
 ## ⚠️ 先读这段
 
-本仓库是 **非官方、由 AI 大幅生成（largely vibed）** 的试验性工程，隶属 `MinecraftReconstruction` 组织。
+本仓库是 **非官方、由 AI 大幅辅助完成（"largely vibed"）** 的移植工程，隶属 `MinecraftReconstruction` 组织。
 
-- 代码几乎全部来自上游作者，我们的改动是移植与同步性质。
+- **上游代码归原作者所有**：Mantle 的代码来自 SlimeKnights / AlphaMode，我们的改动是移植与同步性质。
+- **MinecraftReconstruction 的迁移改动大部分由 AI agent 实施**，在人类设定目标、审查与验证下完成。
 - **与任何原作者都没有隶属或背书关系**；原作者未参与、未审核，也不为本仓库的任何问题负责。
-- 内容由 AI 智能体在人类指导下生成，**"largely vibed" 是准确描述**，请当作草稿而非参考实现。
+- 迁移改动由 AI 智能体在人类指导下生成，**"largely vibed" 是准确描述**，请当作草稿而非参考实现。
 - 想要稳定可用的版本，请使用上游项目。
+
+## Logo / 商标说明
+
+README 与 mod 图标用的是上游仓库里的 `Mantle.png` / `icon.png`（来自 MIT 许可的上游仓库），
+**仅用于说明"这是 Mantle 的移植"**。它属于 SlimeKnights 的作品与标识，不是本项目的自有品牌，
+也不表示任何背书关系；如原作者要求，我们会立即替换。
 
 ## 上游与原作者
 

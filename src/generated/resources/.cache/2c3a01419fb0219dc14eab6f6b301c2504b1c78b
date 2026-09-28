@@ -1,4 +1,4 @@
-// 1.20.1	2026-09-29T01:13:31.125612	Mantle/Mantle fluid transfer provider
+// 1.20.1	2026-09-29T02:02:46.699784	Mantle/Mantle fluid transfer provider
 d3d43bfd5805e6f2678147d049c668a984637822 data/mantle/mantle/fluid_transfer/potion/splash/empty_unique_bottle.json
 b9db9c9634ad66c8d40ed7313df51a11f1319694 data/mantle/mantle/fluid_transfer/potion/lingering/empty_glass_bottle.json
 b8ea9dd12cd223799e98c985c18b409b284f9e3f data/mantle/mantle/fluid_transfer/potion/splash/fill_potion.json
@@ -7,8 +7,8 @@ a5865bc741638c8023eb2055ffe2c1f129671d45 data/mantle/mantle/fluid_transfer/mushr
 d80f8f6e7cc63261bda9a1a1ddf336db65ec8e1a data/mantle/mantle/fluid_transfer/potion/empty.json
 34cf170a15c8854d1d5aa7fb55cb64717cb6a7f1 data/mantle/mantle/fluid_transfer/potion/lingering/fill_potion.json
 1f2356338e3cafc01ec2a5373fce873aa4551788 data/mantle/mantle/fluid_transfer/potion/splash/fill_water.json
-ce9dd81160ee31331d4f9a428f5a98be6c6d9946 data/mantle/mantle/fluid_transfer/mushroom_stew_empty.json
 a0a5c025a616f675db97fc03286a1ac63cd7b34b data/mantle/mantle/fluid_transfer/beetroot_soup_fill.json
+ce9dd81160ee31331d4f9a428f5a98be6c6d9946 data/mantle/mantle/fluid_transfer/mushroom_stew_empty.json
 4b8e73100dc0a4515778922bc9c027b8e4180cd4 data/mantle/mantle/fluid_transfer/potion/lingering/empty_unique_bottle.json
 835fbaa8cfabdadd0db62aecd84e9ee42a895475 data/mantle/mantle/fluid_transfer/honey_bottle_fill.json
 aa275e99b405fee3baf0968546bdbe0c8f6391f8 data/mantle/mantle/fluid_transfer/honey_bottle_empty.json
