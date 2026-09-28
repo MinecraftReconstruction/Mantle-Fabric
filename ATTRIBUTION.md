@@ -24,6 +24,17 @@
 
 `LICENSE` 保留上游 MIT 许可证与版权声明，未做修改。
 
+## 仓库拓扑（2026-09-29 起）
+
+| 仓库 | 角色 |
+|---|---|
+| **`MinecraftReconstruction/Mantle-Fabric`（本仓库，非 fork）** | **canonical 仓库**：面向用户与未来发布的正式仓库。为便于独立维护/发版而**新建**（不是 GitHub fork），但携带移植过程的**全部提交历史**，`mcr/mantle-1.11` 就是旧 fork 里那条工作分支，逐 commit 原样保留 |
+| `MinecraftReconstruction/Mantle-Fabric-upstream` | 旧 fork（改名保留）：继续跟踪 AlphaMode 的上游分支（`1.20.1`、`1.20.1-update`、`1.21.1` …），也用于对照拉取上游更新 |
+| `MinecraftReconstruction/Mantle` | SlimeKnights/Mantle 的 fork，仅作 Forge 版 diff 基准 |
+
+**历史归属不受影响**：本仓库里只要有据可查的提交，作者仍是原作者；用
+`git diff eb1e9a5a..mcr/mantle-1.11` 就能精确切出"我们改了什么"。`eb1e9a5a` 是 AlphaMode 在 1.11 分支上的最后一个提交。
+
 ---
 
 *一句话：功劳归 SlimeKnights 和 AlphaMode，锅归我们。*

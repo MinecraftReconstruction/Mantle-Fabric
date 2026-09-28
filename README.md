@@ -1,65 +1,109 @@
 > [!IMPORTANT]
-> **Unofficial, largely vibed (AI-generated) fork. Not affiliated with, reviewed by, or endorsed by the original authors.**
-> 非官方、由 AI 大幅生成（largely vibed）的试验性 fork，与原作者无任何隶属或背书关系。
-> Credits → [ATTRIBUTION.md](ATTRIBUTION.md)　·　Status & next steps → [docs/STATUS.md](docs/STATUS.md)　·　Agent handoff → [AGENTS.md](AGENTS.md)
+> **Unofficial, largely vibed (AI-generated) port. Not affiliated with, reviewed by, or endorsed by the original authors.**
+> 非官方、由 AI 大幅生成（largely vibed）的移植工程，与原作者没有任何隶属或背书关系。
+> Credits → [ATTRIBUTION.md](ATTRIBUTION.md) · Status → [docs/STATUS.md](docs/STATUS.md) · Behaviour differences → [docs/BEHAVIOUR-DIFFERENCES.md](docs/BEHAVIOUR-DIFFERENCES.md) · Localisation → [docs/I18N.md](docs/I18N.md)
 > For a stable Mantle, use [SlimeKnights/Mantle](https://github.com/SlimeKnights/Mantle) (Forge) or [Alpha-s-Stuff/Mantle](https://github.com/Alpha-s-Stuff/Mantle) (Fabric).
 
 ![Mantle logo](https://raw.github.com/SlimeKnights/Mantle/master/src/main/resources/Mantle.png)
-# Mantle (Fabric) — MinecraftReconstruction fork
+# Mantle (Fabric) — Mantle 1.11 for Minecraft 1.20.1
 
 **Shared code for Fabric mods.**
 
-This is a fork of [Alpha-s-Stuff/Mantle](https://github.com/Alpha-s-Stuff/Mantle) — itself the Fabric port of
-[SlimeKnights/Mantle](https://github.com/SlimeKnights/Mantle) ("shared code for Forge mods").
+This is the canonical repository for the **MinecraftReconstruction** port of Mantle to Fabric. It exists because
+[Tinkers' Construct](https://github.com/SlimeKnights/TinkersConstruct) 3.12.1 requires **Mantle `[1.11.113,)`**
+while the published Fabric build of Mantle only reaches **`1.20.1-1.9.296`** — so bringing Tinkers' Construct up to
+date on Fabric has to start here. Downstream work: [MinecraftReconstruction/TinkersConstruct](https://github.com/MinecraftReconstruction/TinkersConstruct).
 
-## Why this fork exists
+It is based on [Alpha-s-Stuff/Mantle](https://github.com/Alpha-s-Stuff/Mantle) (AlphaMode's Fabric port), itself
+based on [SlimeKnights/Mantle](https://github.com/SlimeKnights/Mantle) (the original Forge library).
 
-[Tinkers' Construct](https://github.com/SlimeKnights/TinkersConstruct) 3.12.1 requires **Mantle `[1.11.113,)`**,
-but the published Fabric build of Mantle only reaches **`1.20.1-1.9.296`**. Bringing Tinkers' Construct up to date
-on Fabric therefore starts here — see [MinecraftReconstruction/TinkersConstruct](https://github.com/MinecraftReconstruction/TinkersConstruct).
+## This is not a GitHub fork — but the history is complete
+
+The repository was created fresh rather than as a fork so that it can be maintained, versioned and released as its
+own project. It still carries the **complete commit history** of the port, including every commit by the upstream
+authors, and `mcr/mantle-1.11` is the exact branch that was developed in the old fork, preserved commit for commit.
+
+```
+git log --oneline mcr/mantle-1.11 | wc -l      # every upstream commit is still here
+git diff eb1e9a5a..mcr/mantle-1.11             # exactly what this port changed, and nothing else
+```
+
+`eb1e9a5a` is AlphaMode's last upstream commit on the 1.11 branch (the one titled `6 errors left (I'm lazy ok)`).
+Everything reachable from `mcr/mantle-1.11` that is not in that diff is the original authors' work.
+
+## Status
+
+| | |
+|---|---|
+| Compiles | ✅ `./gradlew build` — BUILD SUCCESSFUL |
+| Dedicated server | ✅ `./gradlew runServer` — `Done (28.575s)!`, 78 mods, 0 ERROR/FATAL |
+| Client rendering | ⚠️ **never tested** (developed and verified on a dedicated server only) |
+| Behaviour differences | 📋 23 entries — see [docs/BEHAVIOUR-DIFFERENCES.md](docs/BEHAVIOUR-DIFFERENCES.md) |
+| Localisation | ✅ 6 locales, key-for-key aligned, enforced by `./gradlew validateLangFiles` |
+
+This began as a "6 errors left" branch that had never actually been run. Recompiling with `-Xmaxerrs` revealed
+**158** real errors, and the first real server start revealed **two more bugs that never showed up at compile time**
+(an invalid `en_us.json` and a missing Cardinal Components entrypoint constructor). Both are fixed. Full story,
+including which behaviour differences still need in-game verification: **[docs/STATUS.md](docs/STATUS.md)**.
+
+## Using it
+
+Grab the jar from [Releases](../../releases) and drop it in `mods/` together with its dependencies:
+
+| Dependency | Version used here |
+|---|---|
+| Fabric Loader | `>=0.17.2` |
+| [Fabric API](https://modrinth.com/mod/fabric-api) | `0.92.6+1.20.1` |
+| [Porting Lib](https://github.com/Fabricators-of-Create/Porting-Lib) | `2.3.16-beta.81+1.20.1` |
+| [Cardinal Components API](https://modrinth.com/mod/cardinal-components-api) | `5.2.3` |
+| [Architectury API](https://modrinth.com/mod/architectury-api) | `9.1.12` |
+| [Reach Entity Attributes](https://github.com/JamiesWhiteShirt/reach-entity-attributes) | `2.4.0` |
 
 ## Branch map
 
 | Branch | Version | State |
 |---|---|---|
-| `1.20.1` *(default)* | 1.9.x | matches the currently published Fabric Mantle |
-| `1.20.1-update` | **1.11** | **the WIP 1.11 Fabric port — main work happens here** |
-| `1.21.1` | — | earlier 1.21.1 attempt |
-| `1.11`, `1.12`, … | — | inherited from upstream SlimeKnights; these are **Forge** branches, not Fabric |
+| **`mcr/mantle-1.11`** *(default)* | **1.11** | the working branch — all of this project's changes live here |
 
-## Current status
+`mcr` = MinecraftReconstruction. The prefix is deliberate: it makes `git diff eb1e9a5a..mcr/mantle-1.11` a complete
+answer to "what did we change?". Upstream's own branches (`1.20.1`, `1.20.1-update`, `1.21.1`, `1.11`, `1.12`, …)
+are **not** carried here; they are tracked in the
+[upstream mirror](https://github.com/MinecraftReconstruction/Mantle-Fabric-upstream) and at
+[Alpha-s-Stuff/Mantle](https://github.com/Alpha-s-Stuff/Mantle) / [SlimeKnights/Mantle](https://github.com/SlimeKnights/Mantle).
 
-**Not compiling yet.** The upstream author's last commit on `1.20.1-update` is titled `6 errors left (I'm lazy ok)` —
-but that number was an artifact of javac's default `-Xmaxerrs 100` cap. After fixing the first 5 blockers
-(commit `756dad64`), a full recompile reports **158 errors across 55 files**, dominated by Forge APIs that have
-no Fabric equivalent yet (`IFluidHandler`, `ForgeCapabilities`, `LazyOptional`, `IForgeRegistry`, `ICondition`, …).
-
-Full breakdown, fix order and verification steps: **[docs/STATUS.md](docs/STATUS.md)**.
-
-## Compile from Source
+## Compile from source
 
 Requires **JDK 21** (`JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home` on macOS).
 First build downloads dependencies (≈9 min); later builds take 1–3 minutes.
 
 ```bash
-./gradlew compileJava   # fast feedback
-./gradlew build         # full jar
+./gradlew compileJava        # fast feedback
+./gradlew build              # jar + datagen + validation
+./gradlew check              # build + validateLangFiles
+./gradlew validateLangFiles  # lang files only
+./gradlew runServer          # dedicated server smoke test (needs run/eula.txt)
 ```
 
-* setup: Import as a gradle project into your desired IDE. Run `gradlew[.bat] [genIntellijRuns|genEclipseRuns]` to be able to launch the game
-* if obscure gradle issues are found try running `gradlew clean` or/and `gradlew cleanCache`
+* setup: import as a Gradle project into your IDE. Run `gradlew[.bat] [genIntellijRuns|genEclipseRuns]` to launch the game
+* if obscure gradle issues are found try `gradlew clean` or `gradlew cleanCache`
 
 ## Issue reporting
 
-* **Issues caused by this fork** → open them in *this* repository.
+* **Issues caused by this port** → open them in *this* repository.
 * **Issues with Mantle itself** → [SlimeKnights/Mantle](https://github.com/SlimeKnights/Mantle) (Forge) or
   [Alpha-s-Stuff/Mantle](https://github.com/Alpha-s-Stuff/Mantle) (Fabric). The original authors are **not**
-  responsible for anything in this fork.
+  responsible for anything in this port.
 
-When reporting a fork issue, please include: Minecraft version, Mantle version, Fabric Loader/API version,
-the versions of any mods involved, steps to reproduce, and the full log/crash report.
+When reporting an issue, please include: Minecraft version, Mantle version, Fabric Loader/API version, the versions
+of any mods involved, steps to reproduce, and the full log/crash report.
 
-## Licenses  
+## Credits and licence
+
+All credit for Mantle goes to **SlimeKnights** (original Forge library) and **AlphaMode** (the Fabric port this is
+based on). This port's changes are AI-generated under human direction and are labelled as such throughout the
+repository — see [ATTRIBUTION.md](ATTRIBUTION.md). Nothing here implies endorsement by the original authors.
+
+## Licenses
 The MIT License (MIT)
 Copyright (c) 2013-2022 Slime Knights (mDiyo, fuj1n, Sunstrike, progwml6, pillbox, alexbegt, KnightMiner)
 
