@@ -75,7 +75,8 @@ public record RegistryTagSource<T>(Registry<T> registry) implements TagSource<T>
 
   @Override
   public Stream<TagKey<T>> tagsFor(T value) {
-    return registry.getHolder(registry.getId(value)).stream().flatMap(Holder::getTagKeys);
+    // Forge's Holder#getTagKeys is named tags() in vanilla
+    return registry.getHolder(registry.getId(value)).stream().flatMap(Holder::tags);
   }
 
   @Override

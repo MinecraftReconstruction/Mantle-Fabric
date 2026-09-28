@@ -1,10 +1,13 @@
 package slimeknights.mantle.command.tags;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -101,13 +104,11 @@ public class ModifyTagCommand {
 
     // load in existing tag from the path, not using resource managers as we are just modifying locally
     List<TagEntry> add = new ArrayList<>();
-    List<TagEntry> remove = new ArrayList<>();
     boolean replace = false;
     if (Files.exists(tagPath)) {
       try (BufferedReader reader = Files.newBufferedReader(tagPath)) {
         TagFile tagfile = JsonHelper.parse(TagFile.CODEC, reader);
         add.addAll(tagfile.entries());
-        remove.addAll(tagfile.remove());
         replace = tagfile.replace();
       } catch (Exception e) {
         Mantle.logger.error("Failed to load {} tag {} from {}", regName, tag, tagPath, e);
@@ -119,10 +120,6 @@ public class ModifyTagCommand {
     TagEntry tagEntry = entry.tagEntry();
     int changed = 0;
     if (action == Action.ADD) {
-      // ensure the entry is not being removed
-      if (remove(remove, tagEntry)) {
-        changed += 1;
-      }
       if (add(add, tagEntry)) {
         changed += 1;
       }
@@ -131,15 +128,13 @@ public class ModifyTagCommand {
       if (remove(add, tagEntry)) {
         changed += 1;
       }
-      // remove it if not removed
-      if (add(remove, tagEntry)) {
-        changed += 1;
-      }
     }
 
     // save the new tag
     if (changed > 0) {
-      saveTag(regName, tag, tagPath, new TagFile(add, replace, remove));
+      // NOTE: Forge's TagFile#remove does not exist on Fabric, so this file can only add entries or clear
+      // the tag entirely (replace=true); vanilla has no way to remove entries owned by another data pack.
+      saveTag(regName, tag, tagPath, new TagFile(add, replace));
     }
 
     // success
@@ -163,7 +158,7 @@ public class ModifyTagCommand {
     Path tagPath = getPath(pack, registry, tag);
 
     // add an empty tag at the target
-    saveTag(regName, tag, tagPath, new TagFile(List.of(), true, List.of()));
+    saveTag(regName, tag, tagPath, new TagFile(List.of(), true));
 
     // success
     source.sendSuccess(() -> Component.translatable("command.mantle.modify_tag.success.clear", regName, tagComponent(tag, tagPath), GeneratePackHelper.getOutputComponent(pack)), true);
@@ -175,7 +170,20 @@ public class ModifyTagCommand {
 
   /** Checks if two entries are equal */
   private static boolean equals(TagEntry left, TagEntry right) {
-    return left.isTag() == right.isTag() && left.isRequired() == right.isRequired() && left.getId().equals(right.getId());
+    // Forge adds TagEntry#isTag/isRequired/getId; vanilla keeps those fields private, so compare the
+    // serialised form instead, which captures both the tag/element kind and the required flag.
+    if (left == right) {
+      return true;
+    }
+    if (left == null || right == null) {
+      return false;
+    }
+    return encodeEntry(left).equals(encodeEntry(right));
+  }
+
+  /** Serialises a tag entry for comparison */
+  private static JsonElement encodeEntry(TagEntry entry) {
+    return TagEntry.CODEC.encodeStart(JsonOps.INSTANCE, entry).result().orElse(JsonNull.INSTANCE);
   }
 
   /** Removes the entry from the list */

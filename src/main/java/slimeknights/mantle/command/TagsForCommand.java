@@ -5,6 +5,12 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
 import io.github.fabricators_of_create.porting_lib.attributes.PortingLibAttributes;
+import io.github.fabricators_of_create.porting_lib.fluids.FluidStack;
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.Registry;
@@ -172,15 +178,15 @@ public class TagsForCommand {
   private static int heldFluid(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
     CommandSourceStack source = context.getSource();
     ItemStack stack = source.getPlayerOrException().getMainHandItem();
-    LazyOptional<IFluidHandlerItem> capability = stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM);
-    if (capability.isPresent()) {
-      IFluidHandler handler = capability.map(h -> (IFluidHandler) h).orElse(EmptyFluidHandler.INSTANCE);
-      if (handler.getTanks() > 0) {
-        FluidStack fluidStack = handler.getFluidInTank(0);
-        if (!fluidStack.isEmpty()) {
-          Fluid fluid = fluidStack.getFluid();
-          return printOwningTags(context, BuiltInRegistries.FLUID, fluid);
-        }
+    // Forge's FLUID_HANDLER_ITEM capability has no Fabric equivalent; use the Transfer API instead
+    ItemStack copy = stack.copyWithCount(1);
+    ContainerItemContext itemContext = ContainerItemContext.withInitial(copy);
+    Storage<FluidVariant> storage = FluidStorage.ITEM.find(copy, itemContext);
+    if (storage != null) {
+      FluidStack fluidStack = TransferUtil.firstOrEmpty(storage);
+      if (!fluidStack.isEmpty()) {
+        Fluid fluid = fluidStack.getFluid();
+        return printOwningTags(context, BuiltInRegistries.FLUID, fluid);
       }
     }
     source.sendSuccess(() -> NO_HELD_FLUID, true);

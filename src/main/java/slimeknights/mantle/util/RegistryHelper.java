@@ -100,6 +100,7 @@ public class RegistryHelper {
    * @return  Supplier for the given registry
    */
   public static <T> Supplier<T> getHolder(DefaultedRegistry<T> registry, T entry) {
-    return registry.getHolder(registry.getId(entry)).orElseThrow();
+    // go through the resource key: vanilla registries only look holders up by key
+    return registry.getResourceKey(entry).flatMap(registry::getHolder).orElseThrow();
   }
 }
