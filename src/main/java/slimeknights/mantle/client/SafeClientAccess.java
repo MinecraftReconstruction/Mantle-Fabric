@@ -50,7 +50,8 @@ public class SafeClientAccess {
 
   /** Checks if its advanced tooltips */
   public static boolean isAdvancedTooltip() {
-    return FMLEnvironment.dist == Dist.CLIENT && ClientOnly.isAdvancedTooltip();
+    // FMLEnvironment/Dist are Forge; Fabric exposes the same information through the loader
+    return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT && ClientOnly.isAdvancedTooltip();
   }
 
   /** This class is only loaded on the client, so is safe to reference client only methods */

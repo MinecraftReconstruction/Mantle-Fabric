@@ -73,12 +73,13 @@ public class RetexturableRecipeExtension implements ICraftingCategoryExtension {
 
   @Override
   public int getWidth() {
-    return recipe.getRecipeWidth();
+    // Forge's ShapedRecipe#getRecipeWidth does not exist; vanilla names it getWidth
+    return recipe.getWidth();
   }
 
   @Override
   public int getHeight() {
-    return recipe.getRecipeHeight();
+    return recipe.getHeight();
   }
 
   @Override

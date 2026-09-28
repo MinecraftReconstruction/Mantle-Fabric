@@ -89,15 +89,16 @@ public class ClientEvents {
   @SuppressWarnings("removal")
   static void registerListeners() {
     ResourceManagerHelper helper = ResourceManagerHelper.get(PackType.CLIENT_RESOURCES);
-    helper.registerReloadListener(ModelHelper.LISTENER);
+    // Fabric requires an id for every listener; these are plain reload listeners, so wrap them
+    helper.registerReloadListener(new IdentifiedResourceListener(Mantle.getResource("model_helper"), ModelHelper.LISTENER));
     helper.registerReloadListener(new BookLoader());
     ResourceColorManager.init(helper);
     FluidTooltipHandler.init(helper);
     FluidTextureManager.init(helper);
-    helper.registerReloadListener(FluidCuboid.REGISTRY);
-    helper.registerReloadListener(RenderItem.REGISTRY);
-    helper.registerReloadListener(RenderItem.STATE_REGISTRY);
-    helper.registerReloadListener(TextureColorHelper.RELOAD_LISTENER);
+    helper.registerReloadListener(new IdentifiedResourceListener(Mantle.getResource("fluid_cuboid"), FluidCuboid.REGISTRY));
+    helper.registerReloadListener(new IdentifiedResourceListener(Mantle.getResource("render_item"), RenderItem.REGISTRY));
+    helper.registerReloadListener(new IdentifiedResourceListener(Mantle.getResource("render_item_state"), RenderItem.STATE_REGISTRY));
+    helper.registerReloadListener(new IdentifiedResourceListener(Mantle.getResource("texture_color"), TextureColorHelper.RELOAD_LISTENER));
   }
 
   static void clientSetup() {
