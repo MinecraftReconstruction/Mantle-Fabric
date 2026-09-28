@@ -1,6 +1,7 @@
 {
   "mantle:tooltip.cooktime": "Tempo de Cozimento: %ds",
   "config.mantle.extraHeartRenderer": "Ativar Renderização de Corações Extras",
+  "config.mantle.fabric.fluidUnit": "Unidade de fluido",
 
   "command.mantle.view_tag.success": "Valores para a tag %s '%s':",
 
@@ -12,18 +13,26 @@
   "command.mantle.tags_for.no_held_fluid": "Não foi possível obter fluido do item na mão",
   "command.mantle.tags_for.no_held_enchantment": "O item na mão não está encantado",
   "command.mantle.tags_for.no_targeted_entity": "Nenhuma entidade ao alcance",
+  "command.mantle.tags_for.no_targeted_block": "Nenhum bloco visado",
+  "command.mantle.tags_for.no_targeted_fluid": "Nenhum fluido visado",
   "command.mantle.tags_for.no_targeted_block_entity": "Nenhuma entidade de bloco alvo",
   "command.mantle.tags_for.no_tags": "Sem tags",
+
   "command.mantle.book_test.not_found": "Livro desconhecido com ID %s",
   "command.mantle.book.export.success": "Imagens do livro exportadas para '%s'",
   "command.mantle.book.export.error_generic": "Falha ao exportar imagens do livro, veja o log para detalhes",
   "command.mantle.book.export.error_io": "Falha ao criar diretório para imagens do livro '%s'",
 
   "command.mantle.dump_tag.success": "Tag combinada %s '%s' registrada no log do console",
-  "command.mantle.dump_tag.read_error": "Erro ao ler a tag %s '%s':",
   "command.mantle.dump_tag.success_log": "Tag combinada %s '%s' salva em '%s'",
   "command.mantle.dump_all_tags.success": "Todas as tags registradas em '%s'",
   "command.mantle.dump_all_tags.type_success": "Todas as tags de %s registradas em '%s'",
+
+  "command.mantle.modify_tag.success.add": "'%s' adicionado à tag %s '%s'. Execute /reload para ativar o pacote em %s.",
+  "command.mantle.modify_tag.success.remove": "'%s' removido da tag %s '%s'. Execute /reload para ativar o pacote em %s.",
+  "command.mantle.modify_tag.success.clear": "Tag %s '%s' esvaziada. Execute /reload para ativar o pacote em %s.",
+  "command.mantle.modify_tag.read_error": "Erro ao ler a tag %s '%s'",
+  "command.mantle.modify_tag.write_error": "Erro ao escrever a tag %s '%s'",
 
   "command.mantle.dump_loot_modifiers.success_log": "Modificadores globais de loot registrados no log do console",
   "command.mantle.dump_loot_modifiers.success_save": "Modificadores globais de loot salvos em '%s'",
@@ -35,8 +44,21 @@
   "command.mantle.harvest_tiers.tag": "%s: Tag de bloco %s",
   "command.mantle.harvest_tiers.no_tag": "%s: Sem tag",
 
+  "command.mantle.remove_recipes": "%s receitas removidas em %s segundos. Execute /reload para ativar o pacote em %s",
+  "command.mantle.remove_recipes.preset_not_found": "A predefinição de remoção de receitas '%s' está ausente ou é inválida. Consulte o log para mais informações.",
+  "command.mantle.remove.failed_save": "Falha ao salvar o JSON em '%s'.",
+
+  "command.mantle.key.wrong_registry": "Esperava-se que a chave de recurso '%s' pertencesse ao registro '%s'.",
+  "command.mantle.remove_data.structure.success": "Conjunto de estruturas '%s' esvaziado em %s segundos. Execute /reload para ativar o pacote em %s",
+  "command.mantle.remove_data.biome_modifier.success": "Modificador de bioma '%s' removido em %s segundos. Execute /reload para ativar o pacote em %s",
+
+  "command.mantle.sources.success": "Fontes para %s:",
+  "command.mantle.sources.not_found": "'%s' não encontrado:",
+
   "command.mantle.tag.empty": "Vazio",
+  "command.mantle.item.not_found": "Item desconhecido '%s'",
   "command.mantle.registry.not_found": "Registro desconhecido '%s'",
+  "command.mantle.tag_source.not_found": "Fonte de tag desconhecida '%s'",
   "command.mantle.tag.not_found": "Tag %s desconhecida '%s'",
 
   "command.mantle.tag_preference.empty_tag": "Sem preferência para a tag %s %s",
@@ -50,6 +72,7 @@
   "gui.mantle.fluid.kilobucket": "%s kb",
   "gui.mantle.fluid.bucket": "%s baldes",
   "gui.mantle.fluid.millibucket": "%s mb",
+  "gui.mantle.fluid.droplet": "%s gota",
 
   "gui.mantle.fluid.bowl": "%s tigelas",
   "gui.mantle.fluid.bottle": "%s frascos",
@@ -57,5 +80,10 @@
   "gui.mantle.fluid.sip": "%s goles",
 
   "block.mantle.tank.drained": "Drenado %s mb de %s",
-  "block.mantle.tank.filled": "Preenchido %s mb de %s"
+  "block.mantle.tank.filled": "Preenchido %s mb de %s",
+  "block.mantle.tank.drained.droplets": "Drenado %s gotas %s",
+  "block.mantle.tank.filled.droplets": "Preenchido %s gotas %s",
+  "block.mantle.retextured.id": "ID da textura: %s",
+
+  "item.mantle.book.click_to_open": "Clique com o botão direito para abrir"
 }

@@ -231,6 +231,8 @@ JSON 结构正常（**没有** Forge 的 `remove` 列表 —— 正是第 1 条�
 | 11 | `c5db9246` | 剩余的 vanilla-vs-Forge 访问器差异 | — |
 | 12 | `30e42d4f` | 剩余的访问器/查表差异，并登记行为差异 | 51 → 16 |
 | 13 | 本批（本轮） | 收尾 16 个：geometry helper、`addQuads` 签名、`bakedBuilder`、默认精灵、`ArgumentTypeInfos`、Fabric 燃料表、客户端命令参数、Forge 网络 → Mantle 自带 `PacketDistributor`、shader 注册回调 | 16 → **0** |
+| 14 | `28645f3a` | **第一次真机跑服务器**抓到的两个运行时 bug（坏掉的 `en_us.json`、CCA entrypoint 构造器丢失），外加按 Fabric 单位重跑 datagen | 0 → 0（编译本来就过，但服务器从「必崩」变成 `Done (28.575s)`） |
+| 15 | 本批（i18n） | 补齐并统一 6 个语言文件（含从上游**还原** `es_cl`/`ru_ru`）、修 zh_cn 的位置参数 bug、新增 `validateLangFiles` 校验任务 —— 见 [I18N.md](I18N.md) | 0 → 0 |
 
 ### 已确认的 API 映射（可直接复用）
 

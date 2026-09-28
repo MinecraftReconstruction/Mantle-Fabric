@@ -237,3 +237,76 @@ publishing {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
+
+/*
+ * MinecraftReconstruction: the 1.11 branch shipped for months with a syntactically broken
+ * assets/mantle/lang/en_us.json (a missing comma).  Nothing caught it until the mod was actually
+ * started, where it surfaced as a MalformedJsonException that silently killed *every* localised
+ * string in the game.  Validate the lang files as part of `check` instead.
+ */
+tasks.register('validateLangFiles') {
+    group = 'verification'
+    description = 'Checks that all lang files are valid JSON, match en_us.json key for key, and keep the same format placeholders.'
+    def langDir = file('src/main/resources/assets/mantle/lang')
+    inputs.dir(langDir)
+    outputs.upToDateWhen { false }
+    doLast {
+        def slurper = new groovy.json.JsonSlurper()
+        def files = (langDir.listFiles({ f -> f.name.endsWith('.json') } as FileFilter) ?: new File[0]).toList().sort { it.name }
+        if (files.isEmpty()) {
+            throw new GradleException("No lang files found in ${langDir}")
+        }
+        def reference = files.find { it.name == 'en_us.json' }
+        if (reference == null) {
+            throw new GradleException('en_us.json is missing, cannot check the other locales')
+        }
+        def langs = [:]
+        files.each { f ->
+            try {
+                langs[f.name] = slurper.parse(f, 'UTF-8')
+            } catch (Exception e) {
+                throw new GradleException("${f.name} is not valid JSON: ${e.message}", e)
+            }
+        }
+        def en = langs['en_us.json']
+        def problems = []
+        def placeholders = { String value -> (value =~ /%(\d+\$)?[sd]/).size() }
+        langs.each { name, lang ->
+            if (name == 'en_us.json') {
+                return
+            }
+            def missing = en.keySet() - lang.keySet()
+            def extra = lang.keySet() - en.keySet()
+            if (!missing.isEmpty()) {
+                problems << "${name} is missing ${missing.size()} key(s): ${missing.sort()}"
+            }
+            if (!extra.isEmpty()) {
+                problems << "${name} has ${extra.size()} key(s) not in en_us.json: ${extra.sort()}"
+            }
+            lang.each { key, value ->
+                if (!(value instanceof String)) {
+                    problems << "${name}: ${key} is not a string"
+                    return
+                }
+                def expected = en[key]
+                if (expected instanceof String) {
+                    if (placeholders(value) != placeholders(expected)) {
+                        problems << "${name}: ${key} has ${placeholders(value)} placeholders but en_us.json has ${placeholders(expected)}"
+                    }
+                    // Mixing %1\$s with a bare %s makes java.util.Formatter silently reuse the first argument.
+                    if ((value =~ /%\d+\$/).find() && (value =~ /%(?!\d+\$)[sd]/).find()) {
+                        problems << "${name}: ${key} mixes positional (%1\$s) and plain (%s) format specifiers"
+                    }
+                }
+            }
+        }
+        if (!problems.isEmpty()) {
+            throw new GradleException("Lang file validation failed:\n  - " + problems.join('\n  - '))
+        }
+        logger.lifecycle("Validated ${langs.size()} lang files (${en.size()} keys each)")
+    }
+}
+
+tasks.named('check') {
+    dependsOn 'validateLangFiles'
+}
