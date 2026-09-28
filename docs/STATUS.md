@@ -23,7 +23,7 @@
 分支 tip：`eb1e9a5a`，提交信息 **`6 errors left (I'm lazy ok)`**，2026-01-12。
 提交历史本身记录了收敛过程：`87 errors left` → `43 errors left` → `6 errors left`。
 
-本机复现（JDK 21，`./gradlew compileJava`）：
+本机复现（JDK 21，`./gradlew compileJava`）首轮只报：
 
 ```
 5 errors，全部在同一个文件：
@@ -32,8 +32,50 @@ src/main/java/slimeknights/mantle/client/model/util/MantleItemLayerModel.java
   :505 cannot find symbol: IGeometryBakingContext / RenderTypeGroup (x3)
 ```
 
-（`:86` 的 `new RenderTypeGroup(...)` 与 `ForgeRenderTypes.ITEM_UNSORTED_TRANSLUCENT` 因类型已报错而被 javac 抑制，
-**实际待修点比 5 处更多**，见下。）
+### ⚠️ `6 errors left` 是个假象 —— 真实剩余错误是 **158 个**
+
+那 5 个错误已在提交 `756dad64` 修复（详见下节）。修完之后重新编译，**错误数不降反升**：
+
+```
+158 errors / 55 files
+```
+
+原因：javac 默认 `-Xmaxerrs 100` 截断输出，且当某个符号无法解析时，javac 会**抑制依赖它的后续错误**。
+所以 `6 errors left` 只是"被截断后还能看见的 6 个"，真实工作量从未暴露。
+用 `-Xmaxerrs 100000` 重跑即可看到全貌（本仓库不落盘该参数，可用 `gradle -I <init script>` 注入）。
+
+错误画像（这是判断剩余工作性质的关键）：
+
+| 错误类型 | 数量 |
+|---|---|
+| `cannot find symbol` | 93 |
+| `incompatible types`（如 `PackOutput` → `FabricDataOutput`） | 25 |
+| `package ... does not exist`（如 `ForgeRegistries`） | 5 |
+| 其余（方法签名不匹配、override 失效、私有访问等） | 35 |
+
+找不到的符号几乎全是 Forge API，尚未迁移到 Fabric：
+
+```
+ICondition(8)  IFluidHandlerItem(7)  ForgeCapabilities(6)  LazyOptional(6)
+IFluidHandler(5)  FluidAction(4)  ItemHandlerHelper(3)  EmptyFluidHandler(3)
+IForgeRegistry(2)  ForgeHooks  ForgeEventFactory  FMLEnvironment
+ToolActions  PacketDistributor  Registries ...
+```
+
+错误最集中的文件：
+
+```
+33  slimeknights/mantle/fluid/FluidTransferHelper.java
+16  slimeknights/mantle/datagen/MantleFluidTransferProvider.java
+ 9  slimeknights/mantle/command/tags/ModifyTagCommand.java
+ 7  slimeknights/mantle/command/TagsForCommand.java
+ 6  slimeknights/mantle/data/loadable/common/DisplayContextLoadable.java
+ 6  slimeknights/mantle/client/screen/book/BookScreen.java
+ ...
+```
+
+→ **结论：Fluid API 迁移仍是最大的一块**（占 49/158），与 Tinkers 侧的历史教训一致。
+这也意味着 Mantle 1.11 Fabric 不是"差 6 个错误"，而是**差一轮中等规模的 API 迁移**。
 
 ### 根因（已定位）
 
@@ -81,12 +123,33 @@ public static class_1921 get(class_2960 name);   // solid/cutout/cutout_mipped/t
 - [x] 定位公开发布坐标与 maven 来源（`mvn.devos.one/snapshots`，最新 `1.20.1-1.9.296`，**尚无 1.11**）
 - [x] 找到 Fabric 版 Mantle 的**源码仓库**（`Alpha-s-Stuff/Mantle`，公开，MIT）
 - [x] 复现 `1.20.1-update` 的编译错误并定位根因（Porting Lib API 变更）
+- [x] 修复首批 5 个编译阻断（提交 `756dad64`，Porting Lib geometry API 移除）
+- [x] 揭穿 `6 errors left` 的假象：真实剩余 **158 errors / 55 files**，并完成归类
+- [x] 归属声明、状态与交接文档
 
 ## 未完成
 
-1. 修完 `1.20.1-update` 的编译错误
-2. `./gradlew build` 出包；决定发布方式（`publishToMavenLocal` / 自有 maven / 本地 jar）
-3. 与 Tinkers 侧联调：让 `TinkersConstruct` 的端口改用 Mantle 1.11
+1. **迁移流体 API**（`FluidTransferHelper` 33 + `MantleFluidTransferProvider` 16 = 49/158）
+   —— 用 Porting Lib 的 `fluids`/`transfer` 模块替代 `IFluidHandler` / `ForgeCapabilities` / `FluidAction` / `EmptyFluidHandler`
+2. **迁移 Capability**：`LazyOptional`(6)、`ICondition`(8)、`ItemHandlerHelper`(3)
+3. **迁移注册表**：`IForgeRegistry`、`ForgeRegistries`、`Registries` 相关（命令与 datagen 各若干）
+4. **修正 datagen 类型**：`PackOutput` → Fabric `FabricDataOutput`（25 个 incompatible types 大多属此类）
+5. 剩余零散项（`ForgeHooks`、`ForgeEventFactory`、`FMLEnvironment`、`ToolActions`、`PacketDistributor`）
+6. `./gradlew build` 出包；决定发布方式（`publishToMavenLocal` / 自有 maven / 本地 jar）
+7. 与 Tinkers 侧联调：让 `TinkersConstruct` 的端口改用 Mantle 1.11
+
+**修复建议顺序**：流体 → Capability → 注册表 → datagen → 零散项。前两类占了 60% 的错误，
+且与 Tinkers 侧共用同一套映射经验，先啃能复用。
+
+## 已修复内容（`756dad64`）
+
+| 位置 | 原（Forge / 旧 Porting Lib） | 现（Porting Lib 2.3.16） |
+|---|---|---|
+| `getDefaultRenderType` | `RenderTypeGroup getDefaultRenderType(IGeometryBakingContext)` | `RenderType getDefaultRenderType(BlockModel)` |
+| `LayerData#getRenderType` | `context.getRenderType(id)` → `RenderTypeGroup` | `RenderTypeUtil.get(id)` → `RenderType`，失败回落默认值 |
+| `QuadGroup` + `addQuads` | `addQuads(RenderTypeGroup, Collection)` | `addQuads(Collection)`（**已知渲染保真缺口，代码内标了 TODO**） |
+
+⚠️ 第二项与第三项改变了渲染类型语义（半透明/裁剪），**不能只当作编译修补**，发布前必须做视觉验证。
 
 ## 环境
 
