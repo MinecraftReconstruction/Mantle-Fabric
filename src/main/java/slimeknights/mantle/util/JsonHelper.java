@@ -221,8 +221,8 @@ public class JsonHelper {
         return value;
       }
     }
-    // Forge's Registry#getRegistryName is not available on Fabric; look the registry up by key instead
-    throw new JsonSyntaxException("Unknown " + BuiltInRegistries.REGISTRY.getKey(registry) + " " + name);
+    // Forge's Registry#getRegistryName is not available on Fabric; the registry knows its own key
+    throw new JsonSyntaxException("Unknown " + registry.key().location() + " " + name);
   }
 
   /**

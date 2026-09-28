@@ -300,9 +300,9 @@ public class BlockDeferredRegister extends DeferredRegisterWrapper<Block> {
    * @return  Potted block instance
    */
   public RegistryObject<FlowerPotBlock> registerPotted(String name, Supplier<? extends Block> block) {
-    RegistryObject<FlowerPotBlock> potted = registerNoItem("potted_" + name, () -> new FlowerPotBlock(() -> (FlowerPotBlock)Blocks.FLOWER_POT, block, POTTED_PROPS));
-    ((FlowerPotBlock)Blocks.FLOWER_POT).addPlant(resource(name), potted);
-    return potted;
+    // vanilla's FlowerPotBlock takes the content block directly and registers the pot mapping in its own
+    // constructor, so neither Forge's supplier overload nor addPlant exist here
+    return registerNoItem("potted_" + name, () -> new FlowerPotBlock(block.get(), POTTED_PROPS));
   }
 
   /** Registers a potted form of the given block using the vanilla pot */

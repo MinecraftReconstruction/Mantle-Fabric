@@ -8,6 +8,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 
 import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -23,7 +25,7 @@ public enum DataLoadedConditionContext/* implements ICondition.IContext*/ {
     if (registry != null) {
       Optional<HolderSet.Named<T>> tag = registry.getTag(key);
       if (tag.isPresent()) {
-        return tag.get().contents;
+        return contents(tag.get());
       }
     }
     return Set.of();
@@ -33,8 +35,15 @@ public enum DataLoadedConditionContext/* implements ICondition.IContext*/ {
   public <T> Map<ResourceLocation,Collection<Holder<T>>> getAllTags(ResourceKey<? extends Registry<T>> key) {
     Registry<T> registry = RegistryHelper.getRegistry(key);
     if (registry != null) {
-      return registry.getTags().collect(Collectors.toMap(entry -> entry.getFirst().location(), entry -> entry.getSecond().contents));
+      return registry.getTags().collect(Collectors.toMap(entry -> entry.getFirst().location(), entry -> contents(entry.getSecond())));
     }
     return Map.of();
+  }
+
+  /** Forge opens up HolderSet.Named#contents; vanilla only exposes the set through iteration */
+  private static <T> Collection<Holder<T>> contents(HolderSet.Named<T> set) {
+    List<Holder<T>> holders = new ArrayList<>();
+    set.forEach(holders::add);
+    return holders;
   }
 }
