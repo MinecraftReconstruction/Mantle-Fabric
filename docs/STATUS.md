@@ -138,17 +138,56 @@ public static class_1921 get(class_2960 name);   // solid/cutout/cutout_mipped/t
 - [x] 修复首批 5 个编译阻断（提交 `756dad64`，Porting Lib geometry API 移除）
 - [x] 揭穿 `6 errors left` 的假象：真实剩余 **158 errors / 55 files**，并完成归类
 - [x] 归属声明、状态与交接文档
+- [x] **修复 8 个 checkpoint：158 → 51 个编译错误**（详见下节）
+
+## 修复进度（分支 `mcr/mantle-1.11`）
+
+**158 → 51 个编译错误**，每个 checkpoint 一个提交，逐个 push：
+
+| # | 提交 | 内容 | 错误数 |
+|---|---|---|---|
+| 1 | `756dad64` | Porting Lib 2.3.16 移除了 Forge geometry API（`IGeometryBakingContext`/`RenderTypeGroup`/`ForgeRenderTypes`） | 158 → 122 |
+| 2 | `fccc790a` | **`fluid` 整包**迁移到 Fabric Transfer API（capability → `FluidStorage`/`ContainerItemContext`/`Transaction`） | 122 → 109 |
+| 3 | `790662ab` | 数据生成条件：`ICondition`/`NotCondition`/`TagFilledCondition` → Fabric `ConditionJsonProvider` | 109 → 88 |
+| 4 | `02b64911` | tag 命令：Forge 给原版 `TagFile`/`TagEntry` 打的 `remove` 补丁在 Fabric 不存在，去掉了该支路 | 88 → 77 |
+| 5 | `e909cdc0` | registry 查询、`RecipeManagerAccessor`、`ItemDisplayContext`、`ForgeRegistries.DISPLAY_CONTEXTS` | 77 → 75 |
+| 6 | `775a058c` | `Holder` 适配（vanilla 的 `Holder` 不是 `Supplier`）、`PortingLibFluids.FLUID_TYPES` | 75 → 75 |
+| 7 | `ec24e9e3` | **access widener 补齐** Forge 用 AT 打开的私有成员；能用公开 getter 的就用 getter | 75 → 62 |
+| 8 | `9e6d0f03` | reload listener 注册（Fabric 要求 id）、`FMLEnvironment`、`BlockTags.create`、`getRecipeWidth` | 62 → 51 |
+
+### 已确认的 API 映射（可直接复用）
+
+| Forge | Fabric / Porting Lib |
+|---|---|
+| `getCapability(ForgeCapabilities.FLUID_HANDLER, side)` | `FluidStorage.SIDED.find(level, pos, side)` |
+| `getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)` | `FluidStorage.ITEM.find(stack, ContainerItemContext)` |
+| `handler.fill(stack, FluidAction.SIMULATE/EXECUTE)` | `StorageUtil.simulateInsert(...)` + 提交 `Transaction` |
+| `handler.drain(max, SIMULATE)` | `TransferUtil.firstCopyOrEmpty(storage)` |
+| `IFluidHandlerItem#getContainer()` | `ContainerItemContext#getItemVariant().toStack()` |
+| `ICondition` / `NotCondition` / `TagFilledCondition` | `DefaultResourceConditions.tagsPopulated/not` |
+| `ForgeRegistries.FLUID_TYPES` | `PortingLibFluids.FLUID_TYPES` |
+| `ForgeRegistries.DISPLAY_CONTEXTS` | 无（vanilla 就是 enum，按 `getSerializedName()` 查） |
+| `FMLEnvironment.dist == Dist.CLIENT` | `FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT` |
+| `BlockTags/ItemTags.create(id)` | `TagKey.create(Registries.BLOCK/ITEM, id)` |
+| `RecipeManager#byType`（Forge 放宽） | `RecipeManagerAccessor#port_lib$byType` |
+| `Holder#getTagKeys()` | `Holder#tags()`（返回 `Stream`） |
+| Forge AT 打开的私有成员 | `mantle.accesswidener` 里的 `transitive-accessible` |
 
 ## 未完成
 
-1. **迁移流体 API**（`FluidTransferHelper` 33 + `MantleFluidTransferProvider` 16 = 49/158）
-   —— 用 Porting Lib 的 `fluids`/`transfer` 模块替代 `IFluidHandler` / `ForgeCapabilities` / `FluidAction` / `EmptyFluidHandler`
-2. **迁移 Capability**：`LazyOptional`(6)、`ICondition`(8)、`ItemHandlerHelper`(3)
-3. **迁移注册表**：`IForgeRegistry`、`ForgeRegistries`、`Registries` 相关（命令与 datagen 各若干）
-4. **修正 datagen 类型**：`PackOutput` → Fabric `FabricDataOutput`（25 个 incompatible types 大多属此类）
-5. 剩余零散项（`ForgeHooks`、`ForgeEventFactory`、`FMLEnvironment`、`ToolActions`、`PacketDistributor`）
-6. `./gradlew build` 出包；决定发布方式（`publishToMavenLocal` / 自有 maven / 本地 jar）
-7. 与 Tinkers 侧联调：让 `TinkersConstruct` 的端口改用 Mantle 1.11
+1. **剩余 51 个错误**，集中在：
+   - `CombatHelper`(4)：`ForgeHooks`/`ForgeEventFactory`/`ToolActions`/`ItemStack#getSweepHitBox` —— 需要自己写垫片
+   - `client/book/StructureInfo`(4)、`element/StructureElement`(3)：`pos()`/`ModelData`（Forge 扩展）
+   - `util/JsonHelper`(3)：`PacketDistributor`/`PacketTarget`（Forge 网络）
+   - `loot/function/SetFluidLootFunction`(3)：`FluidStackLoadable` 位置变更
+   - `client/render/MantleShaders`(2)：Forge 的 shader 注册事件
+   - `block/fluid/BurningLiquidBlock`/`MobEffectLiquidBlock`/`FluidDeferredRegister`(共 5)：
+     `LiquidBlock` 在 vanilla 收 `FlowingFluid` 而非 `Supplier`
+   - `ItemStackLoadable`(2)：`readShareTag`/`getShareTag`（Forge 的 NBT 分享机制）
+   - datagen 的 `PackOutput` → `FabricDataOutput`(2)
+2. `./gradlew build` 出包；决定发布方式（`publishToMavenLocal` / 自有 maven / 本地 jar）
+3. 与 Tinkers 侧联调：让 `TinkersConstruct` 的端口改用 Mantle 1.11
+4. **每完成一批立刻 commit + push 作为 checkpoint**（分工要求）
 
 **修复建议顺序**：流体 → Capability → 注册表 → datagen → 零散项。前两类占了 60% 的错误，
 且与 Tinkers 侧共用同一套映射经验，先啃能复用。
