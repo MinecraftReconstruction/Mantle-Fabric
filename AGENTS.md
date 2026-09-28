@@ -59,7 +59,7 @@
 | 1 编译 | `./gradlew compileJava` | ✅ 0 错误 |
 | 2 出包 + 校验 | `./gradlew check`（含 datagen、access widener、语言文件校验） | ✅ 通过 |
 | 3 专用服务器 | `./gradlew runServer`（需要 `run/eula.txt`，改完可以顺手 `stop`） | ✅ `Done (28.575s)`、0 ERROR/FATAL |
-| 4 客户端 | `./gradlew runClient` 进世界看模型 / 书本 / 着色器 | ❌ **一次都没跑过** |
+| 4 客户端 | `./gradlew runClient` 进世界看模型 / 书本 / 着色器 | ⚠️ 启动到主菜单已通过（92 mods、0 报错、模型全烘焙）；**进世界后的观感没人看过** |
 | 5 行为差异实测 | 逐条核对 [BEHAVIOUR-DIFFERENCES.md](docs/BEHAVIOUR-DIFFERENCES.md) 的"验证状态" | ❌ 大部分还没做 |
 
 命令行也能测服务端逻辑（不需要玩家在线）：`runServer` 起来后在控制台直接敲

@@ -37,7 +37,8 @@ Everything reachable from `mcr/mantle-1.11` that is not in that diff is the orig
 |---|---|
 | Compiles | ✅ `./gradlew build` — BUILD SUCCESSFUL |
 | Dedicated server | ✅ `./gradlew runServer` — `Done (28.575s)!`, 78 mods, 0 ERROR/FATAL |
-| Client rendering | ⚠️ **never tested** (developed and verified on a dedicated server only) |
+| Client startup | ✅ `./gradlew runClient` — reaches the main menu, 92 mods, 0 ERROR/FATAL (all models baked, shaders registered) |
+| Client rendering *in world* | ⚠️ **never looked at** — the game has not been driven past the main menu, so nothing visual is confirmed |
 | Behaviour differences | 📋 23 entries — see [docs/BEHAVIOUR-DIFFERENCES.md](docs/BEHAVIOUR-DIFFERENCES.md) |
 | Localisation | ✅ 6 locales, key-for-key aligned, enforced by `./gradlew validateLangFiles` |
 

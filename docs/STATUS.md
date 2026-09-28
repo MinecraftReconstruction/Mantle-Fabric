@@ -177,7 +177,27 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home ./gradlew c
 |---|---|
 | `./gradlew build` | **BUILD SUCCESSFUL**（含 `runDatagen`、`validateAccessWidener`）；产出 `Mantle-1.20.1-1.11.DEV.<sha>.jar`（1.8 MB） |
 | `./gradlew runServer` | **`Done (28.575s)!`**，加载 78 个模组；启动、区块生成、`/reload` 全部无异常 |
-| 日志里的 ERROR/FATAL | **0 条**（修复前：语言文件解析失败 + CCA 初始化失败 + 每次区块生成都崩） |
+| `./gradlew runClient` | **启动到主菜单成功**，加载 92 个模组；资源重载、全部模型烘焙、着色器注册、地图集创建全部无异常 |
+| 日志里的 ERROR/FATAL | **0 条**（服务器和客户端都是 0；修复前：语言文件解析失败 + CCA 初始化失败 + 每次区块生成都崩） |
+
+### 客户端加载验证（2026-09-29 02:13，第一次真正启动客户端）
+
+客户端**没有被操作过**（没有 GUI 自动化手段），但"启动到主菜单"这一趟已经能验证相当多东西：
+
+```
+Setting user: Player751                      -> 客户端入口点构造成功
+Reloading ResourceManager: ... mantle ...    -> 资源重载包含 Mantle
+(Mantle) Loaded 0 fluid textures             -> 流体贴图加载器
+(FluidTooltipHandler) Loaded 6 fluid unit lists   -> 流体单位/提示（移植过的 loadable）
+(Mantle) Finished loading 0 Block entity items    -> RenderItem.STATE_REGISTRY（我补的 reload listener id）
+(Mantle) Finished loading 0 Block entity fluids   -> FluidCuboid
+Sound engine started / Created: ...atlas...  -> 贴图图集与全部内建模型烘焙完成，无模型报错
+```
+
+即：**模型烘焙、资源重载、着色器注册、各数据加载器都在客户端真实跑过一遍且无报错**。
+唯一剩下的空白是"进世界以后看起来对不对"（渲染观感），这需要人眼或用 GUI 自动化。
+顺带确认：日志里那条 `Shader rendertype_entity_translucent_emissive could not find sampler` 与 Mantle 无关
+（是原版/Porting Lib 的既有告警），`star:` 的 blockstate 告警来自 star 模组。
 
 ### 这一次修掉的运行时 bug
 
@@ -207,10 +227,13 @@ JSON 结构正常（**没有** Forge 的 `remove` 列表 —— 正是第 1 条�
 
 ### 还没验证的
 
-- **只在专用服务器上跑过**，客户端（`runClient`）的模型/书本/着色器渲染一次都没看过：
-  第 6、13、14 条（渲染类型）和第 15 条（默认精灵）都还只是"编译能过"。
-- 燃料值（第 16 条）、参数类型网络同步（第 18 条）、流体浸没判定（第 3 条）、NBT 持久化（第 23 条）
-  都需要专门写 gametest 或进游戏操作才能验证。
+- **渲染观感**：客户端能启动、模型能烘焙，但**没有人看过画面**。第 6、13、14 条（渲染类型）仍是"烘焙无报错、
+  观感未知"。需要人眼，或给客户端加 GUI 自动化 / 截图权限。
+- **需要下游模组才能测**：燃料值（第 16 条）依赖 `BurnableHangingSignItem` 的实际实例，而 Mantle 自己
+  不注册这样一件物品 —— 只能等 Tinkers' Construct 接上来之后测。流体浸没判定（第 3 条）同理（`BurningLiquidBlock`
+  的用法在下游）。
+- **需要专门写测试**：参数类型网络同步（第 18 条，需要客户端↔服务端握手）、NBT 持久化（第 23 条，
+  需要存档/重载）、流体浸没（第 3 条）。
 
 ## 修复进度（分支 `mcr/mantle-1.11`）
 
