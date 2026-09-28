@@ -11,40 +11,38 @@ import slimeknights.mantle.util.typed.TypedMap;
 
 import java.util.Map;
 
-/** Special loadable for display contexts due to the Forge weirdness in {@link ItemDisplayContext} */
+/**
+ * Special loadable for display contexts.
+ * <p>
+ * Forge registers {@link ItemDisplayContext} in its own registry so mods can add contexts; on Fabric it is
+ * simply the vanilla enum, so this loadable resolves values by their serialised name instead.
+ */
 public enum DisplayContextLoadable implements ResourceLocationLoadable<ItemDisplayContext> {
   INSTANCE;
 
   @Override
   public ItemDisplayContext fromKey(ResourceLocation name, String key, TypedMap context) {
-    IForgeRegistry<ItemDisplayContext> registry = ForgeRegistries.DISPLAY_CONTEXTS.get();
-    if (registry.containsKey(name)) {
-      ItemDisplayContext value = registry.getValue(name);
-      if (value != null) {
+    for (ItemDisplayContext value : ItemDisplayContext.values()) {
+      if (value.getSerializedName().equals(name.getPath())) {
         return value;
       }
     }
-    throw new JsonSyntaxException("Unable to parse " + key + " as the ItemDisplayContext registry does not contain ID " + name);
+    throw new JsonSyntaxException("Unable to parse " + key + " as ItemDisplayContext does not contain the ID " + name);
   }
 
   @Override
   public ResourceLocation getKey(ItemDisplayContext object) {
-    IForgeRegistry<ItemDisplayContext> registry = ForgeRegistries.DISPLAY_CONTEXTS.get();
-    ResourceLocation location = registry.getKey(object);
-    if (location == null) {
-      throw new RuntimeException("ItemDisplayContext registry does not contain object " + object);
-    }
-    return location;
+    return new ResourceLocation(object.getSerializedName());
   }
 
   @Override
   public ItemDisplayContext decode(FriendlyByteBuf buffer, TypedMap context) {
-    return buffer.readRegistryIdUnsafe(ForgeRegistries.DISPLAY_CONTEXTS.get());
+    return buffer.readEnum(ItemDisplayContext.class);
   }
 
   @Override
   public void encode(FriendlyByteBuf buffer, ItemDisplayContext value) {
-    buffer.writeRegistryIdUnsafe(ForgeRegistries.DISPLAY_CONTEXTS.get(), value);
+    buffer.writeEnum(value);
   }
 
   @Override

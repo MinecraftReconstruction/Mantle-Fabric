@@ -1,5 +1,6 @@
 package slimeknights.mantle.recipe.helper;
 
+import io.github.fabricators_of_create.porting_lib.mixin.accessors.common.accessor.RecipeManagerAccessor;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import net.minecraft.core.RegistryAccess;
@@ -128,6 +129,7 @@ public class RecipeHelper {
    * @return  List of flattened recipes from the manager
    */
   public static <I extends Container, T extends Recipe<I>, C> List<C> getJEIRecipes(RegistryAccess access, RecipeManager manager, RecipeType<T> type, Class<C> clazz) {
-    return getJEIRecipes(access, manager.byType(type).values().stream(), clazz);
+    // RecipeManager#byType is private in vanilla; Porting Lib's accessor exposes it again
+    return getJEIRecipes(access, ((RecipeManagerAccessor) manager).port_lib$byType(type).values().stream(), clazz);
   }
 }

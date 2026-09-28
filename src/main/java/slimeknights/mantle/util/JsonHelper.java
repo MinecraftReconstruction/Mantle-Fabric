@@ -11,6 +11,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.Resource;
@@ -220,7 +221,8 @@ public class JsonHelper {
         return value;
       }
     }
-    throw new JsonSyntaxException("Unknown " + registry.getRegistryName() + " " + name);
+    // Forge's Registry#getRegistryName is not available on Fabric; look the registry up by key instead
+    throw new JsonSyntaxException("Unknown " + BuiltInRegistries.REGISTRY.getKey(registry) + " " + name);
   }
 
   /**
