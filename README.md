@@ -7,6 +7,10 @@
 ![Mantle logo](src/main/resources/Mantle.png)
 # Mantle (Fabric) — Mantle 1.11 for Minecraft 1.20.1
 
+[![Modrinth](https://img.shields.io/badge/Modrinth-Mantle%20Fabric%20%28Unofficial%29-1bd96a?logo=modrinth&logoColor=white)](https://modrinth.com/mod/mantle-fabric-unofficial)
+[![build](https://github.com/MinecraftReconstruction/Mantle-Fabric/actions/workflows/build.yml/badge.svg?branch=mcr%2Fmantle-1.11)](https://github.com/MinecraftReconstruction/Mantle-Fabric/actions/workflows/build.yml)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **Shared code for Fabric mods.**
 
 This is the canonical repository for the **MinecraftReconstruction** port of Mantle to Fabric. It exists because
