@@ -8,6 +8,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.material.Fluid;
 import slimeknights.mantle.Mantle;
 import slimeknights.mantle.recipe.helper.FluidOutput;
@@ -46,6 +47,36 @@ public class FluidObject<F extends Fluid> implements Supplier<F>, ItemLike, IdAw
   /** Gets the fluid type for this object */
   public FluidType getType() {
     return type.get();
+  }
+
+  /**
+   * Gets the tag in the mod namespace, an exact match for this fluid. Used by recipes that want to
+   * accept only this mod's fluid, while still letting addons add their own variants.
+   */
+  @Nonnull
+  public TagKey<Fluid> getLocalTag() {
+    return TagKey.create(Registries.FLUID, id);
+  }
+
+  /** Gets the tag in the common namespace, used for crafting equivalence. Null if this fluid has no common tag. */
+  @Nullable
+  public TagKey<Fluid> getForgeTag() {
+    return commonTag;
+  }
+
+  /** Gets the tag used for crafting equivalence, the common tag if this fluid has one, otherwise the local tag. */
+  @Nonnull
+  public TagKey<Fluid> getTag() {
+    return commonTag != null ? commonTag : getLocalTag();
+  }
+
+  /**
+   * Gets the block form of this fluid, if any.
+   * @return  Block, or null for a fluid with no block form
+   */
+  @Nullable
+  public LiquidBlock getBlock() {
+    return null;
   }
 
   /**

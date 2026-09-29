@@ -1,8 +1,6 @@
 package slimeknights.mantle.registration.object;
 
 import io.github.fabricators_of_create.porting_lib.fluids.FluidType;
-import lombok.Getter;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.TagKey;
@@ -22,9 +20,6 @@ import java.util.function.Supplier;
  */
 @SuppressWarnings("WeakerAccess")
 public class FlowingFluidObject<F extends FlowingFluid> extends FluidObject<F> {
-  /** Tag in the mod namespace, exact match */
-  @Getter @Nonnull
-  private final TagKey<Fluid> localTag;
   private final Supplier<? extends F> flowing;
   @Nullable
   private final Supplier<? extends LiquidBlock> block;
@@ -32,7 +27,6 @@ public class FlowingFluidObject<F extends FlowingFluid> extends FluidObject<F> {
   /** Main constructor */
   public FlowingFluidObject(ResourceLocation id, @Nullable String tagName, Supplier<? extends FluidType> type, Supplier<? extends F> still, Supplier<? extends F> flowing, @Nullable Supplier<? extends LiquidBlock> block) {
     super(id, tagName, type, still);
-    this.localTag = TagKey.create(Registries.FLUID, id);
     this.flowing = flowing;
     this.block = block;
   }
@@ -68,11 +62,6 @@ public class FlowingFluidObject<F extends FlowingFluid> extends FluidObject<F> {
 
 
   /* Datagen helpers */
-
-  /** Gets the primary tag used for recipes with this object */
-  public TagKey<Fluid> getTag() {
-    return commonTag != null ? commonTag : localTag;
-  }
 
   @Override
   public FluidIngredient ingredient(long amount) {
