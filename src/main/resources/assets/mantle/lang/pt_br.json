@@ -1,6 +1,8 @@
 {
   "mantle:tooltip.cooktime": "Tempo de Cozimento: %ds",
   "config.mantle.extraHeartRenderer": "Ativar Renderização de Corações Extras",
+  "config.mantle.enableFluidFogFix": "Ativar correção de névoa de fluido",
+  "config.mantle.fluidFallbackUseTextShader": "Usar shader de texto como alternativa para fluidos",
   "config.mantle.fabric.fluidUnit": "Unidade de fluido",
 
   "command.mantle.view_tag.success": "Valores para a tag %s '%s':",
@@ -20,8 +22,16 @@
 
   "command.mantle.book_test.not_found": "Livro desconhecido com ID %s",
   "command.mantle.book.export.success": "Imagens do livro exportadas para '%s'",
+  "command.mantle.book.export.html.success": "Imagens do livro exportadas para '%s' e HTML para '%s'",
   "command.mantle.book.export.error_generic": "Falha ao exportar imagens do livro, veja o log para detalhes",
   "command.mantle.book.export.error_io": "Falha ao criar diretório para imagens do livro '%s'",
+
+  "command.mantle.hunger.set.single": "Fome de %s definida para %d",
+  "command.mantle.hunger.set.multiple": "Fome de %d jogadores definida para %d",
+  "command.mantle.hunger.add.single": "%s recebeu +%d de fome",
+  "command.mantle.hunger.add.multiple": "%d jogadores receberam +%d de fome",
+  "command.mantle.hunger.subtract.single": "%s recebeu -%d de fome",
+  "command.mantle.hunger.subtract.multiple": "%d jogadores receberam -%d de fome",
 
   "command.mantle.dump_tag.success": "Tag combinada %s '%s' registrada no log do console",
   "command.mantle.dump_tag.success_log": "Tag combinada %s '%s' salva em '%s'",

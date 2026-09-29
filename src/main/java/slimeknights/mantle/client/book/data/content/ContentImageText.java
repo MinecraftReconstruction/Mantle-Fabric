@@ -10,6 +10,9 @@ import slimeknights.mantle.client.screen.book.BookScreen;
 import slimeknights.mantle.client.screen.book.element.BookElement;
 import slimeknights.mantle.client.screen.book.element.ImageElement;
 import slimeknights.mantle.client.screen.book.element.TextElement;
+import slimeknights.mantle.util.html.HtmlElement;
+import slimeknights.mantle.util.html.HtmlGroup;
+import slimeknights.mantle.util.html.HtmlSerializable;
 
 import java.util.ArrayList;
 
@@ -50,5 +53,15 @@ public class ContentImageText extends PageContent {
     if (this.text != null && this.text.length > 0) {
       list.add(new TextElement(0, y, BookScreen.PAGE_WIDTH, BookScreen.PAGE_HEIGHT - y, this.text));
     }
+  }
+
+  @Override
+  public HtmlSerializable toHTML(BookData book) {
+    int h = image.height > 0 ? image.height : 100;
+    return HtmlGroup.indent().add(
+      makeTitleHTML(),
+      HtmlElement.div().classes("column").style("padding-top", h * 2 + 14)
+        .add(TextData.toHtml(text, book))
+    );
   }
 }

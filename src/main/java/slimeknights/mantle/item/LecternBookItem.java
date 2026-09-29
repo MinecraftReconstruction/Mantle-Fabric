@@ -59,5 +59,4 @@ public abstract class LecternBookItem extends TooltipItem implements ILecternBoo
     }
     return InteractionResult.PASS;
   }
-
 }

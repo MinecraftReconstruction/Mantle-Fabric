@@ -19,6 +19,9 @@ import slimeknights.mantle.client.screen.book.element.AnimationToggleElement;
 import slimeknights.mantle.client.screen.book.element.BookElement;
 import slimeknights.mantle.client.screen.book.element.StructureElement;
 import slimeknights.mantle.client.screen.book.element.TextElement;
+import slimeknights.mantle.util.html.HtmlElement;
+import slimeknights.mantle.util.html.HtmlGroup;
+import slimeknights.mantle.util.html.HtmlSerializable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -109,5 +112,13 @@ public class ContentStructure extends PageContent {
         list.add(new AnimationToggleElement(BookScreen.PAGE_WIDTH - ArrowButton.ArrowType.REFRESH.w, 0, ArrowButton.ArrowType.REFRESH, col, colHover, colToggled, structureElement));
       }
     }
+  }
+
+  @Override
+  public HtmlSerializable toHTML(BookData book) {
+    return HtmlGroup.indent().add(
+      makeTitleHTML(),
+      HtmlElement.div().style("padding-top", 240).add(TextData.toHtml(description, book))
+    );
   }
 }

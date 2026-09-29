@@ -8,11 +8,14 @@ import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import slimeknights.mantle.client.book.BookLoader;
+import slimeknights.mantle.client.book.IHTML;
 import slimeknights.mantle.client.book.data.content.ContentError;
 import slimeknights.mantle.client.book.data.element.ImageData;
 import slimeknights.mantle.client.book.repository.BookRepository;
 import slimeknights.mantle.client.screen.book.BookScreen;
 import slimeknights.mantle.util.DataLoadedConditionContext;
+import slimeknights.mantle.util.html.HtmlElement;
+import slimeknights.mantle.util.html.HtmlSerializable;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -24,7 +27,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class SectionData implements IDataItem, IConditional {
+public class SectionData implements IDataItem, IConditional, IHTML {
 
   public String name = null;
   public ImageData icon = new ImageData();
@@ -145,5 +148,19 @@ public class SectionData implements IDataItem, IConditional {
   public boolean isConditionMet() {
     // Forge's condition context is gone; the Fabric condition resolves against the loaded registries itself
     return condition.test();
+  }
+
+  @Override
+  public HtmlSerializable toHTML(BookData book) {
+    int pageNumber = book.getFirstPageNumber(this, null);
+    // first page number is 1 indexed, but find page is 0 indexed
+    PageData firstPage = book.findPage(pageNumber - 1, null);
+    if (firstPage == null) {
+      return HtmlSerializable.EMPTY;
+    }
+    String title = getTitle();
+    return HtmlElement.indent("a").href("../page-" + (pageNumber / 2) + "/#" + name + '.' + firstPage.name).add(
+      HtmlElement.div().classes("grid-icon").minetip(title).add(HtmlElement.p().add(title))
+    );
   }
 }

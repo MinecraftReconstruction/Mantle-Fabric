@@ -13,6 +13,9 @@ import slimeknights.mantle.client.screen.book.BookScreen;
 import slimeknights.mantle.client.screen.book.TextDataRenderer;
 import slimeknights.mantle.client.screen.book.element.BookElement;
 import slimeknights.mantle.client.screen.book.element.ListingLeftElement;
+import slimeknights.mantle.util.html.HtmlElement;
+import slimeknights.mantle.util.html.HtmlGroup;
+import slimeknights.mantle.util.html.HtmlSerializable;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -71,7 +74,7 @@ public class ContentListing extends PageContent {
 
   /** If true, there are entries in this listing */
   public boolean hasEntries() {
-    return this.entries.get(0).size() > 0;
+    return !this.entries.get(0).isEmpty();
   }
 
   /** Gets the height for a column in pixels */
@@ -140,17 +143,20 @@ public class ContentListing extends PageContent {
           x += width;
           y = 0;
         }
-        String text = data.text;
+        String text = data.getText();
         if (text.isEmpty()) {
           y += LINE_HEIGHT;
         } else {
-          // if (!data.bold) text = "- " + text;
-          // int height = this.parent.parent.parent.fontRenderer.wordWrapHeight(text, width) * LINE_HEIGHT / 9;
           int height;
           if (data.bold) {
             height = TextDataRenderer.getLinesForString(text, ChatFormatting.BOLD.toString(), width, "", parent.parent.parent.fontRenderer) * LINE_HEIGHT;
           } else {
             height = TextDataRenderer.getLinesForString(text, "", width, "- ", parent.parent.parent.fontRenderer) * LINE_HEIGHT;
+          }
+          // if the last entry is too tall, move it to the next column. But only if not at the start to prevent double relocation.
+          if (y > 0 && y + height > columnHeight) {
+            x += width;
+            y = 0;
           }
           list.add(new ListingLeftElement(x, y + yOff, width, height, data.bold, data));
           y += height;
@@ -160,5 +166,47 @@ public class ContentListing extends PageContent {
       x += width;
       y = 0;
     }
+  }
+
+  @Override
+  public HtmlSerializable toHTML(BookData book) {
+    HtmlGroup group = HtmlGroup.indent().add(makeTitleHTML());
+    if (subText != null) {
+      group.add(HtmlElement.p().add(subText).style("padding-left", 10));
+    }
+
+    if (!entries.isEmpty()) {
+      HtmlElement columns = HtmlElement.div().classes("content-list-links");
+      group.add(columns);
+
+      int yOff = 0;
+      if (this.title != null) yOff = 16;
+      if (this.subText != null) yOff += book.fontRenderer.wordWrapHeight(subText, BookScreen.PAGE_WIDTH) * 12 / 9;
+      int rows = getColumnHeight(yOff) / LINE_HEIGHT;
+
+      for (List<TextData> entry : entries) {
+        HtmlElement column = HtmlElement.div();
+        columns.add(column);
+        int i = 0;
+        if (entry.get(0).bold) {
+          column.add(entry.get(0).toHTML(book));
+          i++;
+        }
+        HtmlElement list = HtmlElement.ul().classes("link-list");
+        column.add(list);
+        for (; i < entry.size(); i++) {
+          // split list into new divs/lists
+          if (i != 0 && i % rows == 0 && i != entry.size() - 1) {
+            column = HtmlElement.div();
+            columns.add(column);
+            list = HtmlElement.ul().classes("link-list");
+            column.add(list);
+          }
+
+          list.add(HtmlElement.li().add(entry.get(i).toHTML(book)));
+        }
+      };
+    }
+    return group;
   }
 }

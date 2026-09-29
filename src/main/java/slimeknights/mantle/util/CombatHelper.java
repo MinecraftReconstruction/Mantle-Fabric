@@ -38,7 +38,11 @@ import slimeknights.mantle.Mantle;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /** Helpers for attacking with weapons */
 public class CombatHelper {
@@ -50,43 +54,92 @@ public class CombatHelper {
 
   private CombatHelper() {}
 
+  /** Gets the item stack in the main hand that contributes to attributes. Exposed for benefit of Tinkers' Construct which can optimize these methods for its tools. */
+  public static ItemStack getMainhandAttributeStack(LivingEntity entity) {
+    // clientside does not use last item stack, so our best choice is the mainhand stack
+    if (entity.level().isClientSide) {
+      return entity.getMainHandItem();
+    }
+    // serverside, use the last item stack instead of the current. Should be the same, but if they mismatch then last item stack has correct attributes
+    return entity.getLastHandItem(EquipmentSlot.MAINHAND);
+  }
+
+  /**
+   * Gets a modifiable map that is a copy of the modifiers from the given attribute instance. All operations are guaranteed to have a valid set.
+   * Note we use a map instead of a full attribute instance as we don't need the cache or other data structures.
+   */
+  public static Map<Operation, Set<AttributeModifier>> copyModifiers(AttributeInstance instance) {
+    Map<Operation, Set<AttributeModifier>> modifiers = new EnumMap<>(Operation.class);
+    for (Operation operation : Operation.values()) {
+      Collection<AttributeModifier> original = instance.getModifiersOrEmpty(operation);
+      Set<AttributeModifier> copy = new HashSet<>(original.size());
+      copy.addAll(original);
+      modifiers.put(operation, copy);
+    }
+    return modifiers;
+  }
 
   /** Gets the attribute for the offhand by subtracting mainhand attributes and adding in offhand stack attributes. */
   public static float getOffhandAttribute(ItemStack stack, LivingEntity entity, Attribute attribute) {
     AttributeInstance instance = entity.getAttribute(attribute);
-    if (instance != null) {
-      // remove main hand damage
-      ItemStack mainStack = entity.getMainHandItem();
-      Collection<AttributeModifier> mainModifiers = List.of();
-      if (!mainStack.isEmpty()) {
-        mainModifiers = mainStack.getAttributeModifiers(EquipmentSlot.MAINHAND).get(attribute);
-        for (AttributeModifier modifier : mainModifiers) {
-          instance.removeModifier(modifier);
-        }
-      }
-
-      // add in offhand damage and compute
-      Collection<AttributeModifier> offhandModifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND).get(attribute);
-      for (AttributeModifier modifier : offhandModifiers) {
-        instance.addTransientModifier(modifier);
-      }
-      float damage = (float) instance.getValue();
-
-      // restore main hand damage
-      for (AttributeModifier modifier : offhandModifiers) {
-        instance.removeModifier(modifier);
-      }
-      for (AttributeModifier modifier : mainModifiers) {
-        instance.addTransientModifier(modifier);
-      }
-
-      return damage;
+    if (instance == null) {
+      return (float) entity.getAttributeBaseValue(attribute);
     }
-    return (float) entity.getAttributeBaseValue(attribute);
+
+    // fetch attributes for both relevant stacks
+    ItemStack mainStack = getMainhandAttributeStack(entity);
+    Collection<AttributeModifier> mainModifiers = List.of();
+    if (!mainStack.isEmpty()) {
+      mainModifiers = mainStack.getAttributeModifiers(EquipmentSlot.MAINHAND).get(attribute);
+    }
+    Collection<AttributeModifier> offhandModifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND).get(attribute);
+
+    // if no modifier changed, can save some work by just using the cached value
+    if (mainModifiers.isEmpty() && offhandModifiers.isEmpty()) {
+      return (float) instance.getValue();
+    }
+
+    // start by creating a modifiable copy of the per operation attribute map
+    Map<Operation, Set<AttributeModifier>> modifiers = copyModifiers(instance);
+    // remove all mainhand modifiers
+    for (AttributeModifier modifier : mainModifiers) {
+      modifiers.get(modifier.getOperation()).remove(modifier);
+    }
+    // add in all offhand modifiers
+    for (AttributeModifier modifier : offhandModifiers) {
+      // while there should be no duplicates due to mainhand modifiers above,
+      // this will remove duplicates due to AttributeModifier equals only checking UUID
+      modifiers.get(modifier.getOperation()).add(modifier);
+    }
+    // compute the value
+    return (float) computeAttribute(attribute, instance.getBaseValue(), modifiers);
+  }
+
+  /** Computes the value for the given attribute. Copied from {@link AttributeInstance#calculateValue} */
+  public static double computeAttribute(Attribute attribute, double base, Map<Operation,Set<AttributeModifier>> modifiers) {
+    // addition modifiers
+    for (AttributeModifier modifier : modifiers.get(Operation.ADDITION)) {
+      base += modifier.getAmount();
+    }
+    // multiply base
+    double value = base;
+    for (AttributeModifier modifier : modifiers.get(Operation.MULTIPLY_BASE)) {
+      value += base * modifier.getAmount();
+    }
+    // multiply total
+    for (AttributeModifier modifier : modifiers.get(Operation.MULTIPLY_TOTAL)) {
+      value *= 1.0 + modifier.getAmount();
+    }
+    return attribute.sanitizeValue(value);
+  }
+
+  /** Checks if the given entity can be attacked. */
+  public static boolean isAttackable(Entity attacker, Entity target) {
+    return target.isAttackable() && !target.skipAttackInteraction(attacker);
   }
 
   /**
-   * Performs an attack, mimicing  {@link Player#attack(Entity)}.
+   * Performs an attack, mimicking  {@link Player#attack(Entity)}.
    * For use in {@link net.minecraft.world.item.Item#interactLivingEntity(ItemStack, Player, LivingEntity, InteractionHand)} primarily,
    * but can also be used to fake an attack similar to {@link net.minecraftforge.common.extensions.IForgeItem#onLeftClickEntity(ItemStack, Player, Entity)}.
    *
@@ -96,7 +149,22 @@ public class CombatHelper {
    * @param hand          Hand used for attacking.
    */
   public static boolean attack(ItemStack stack, Player player, Entity target, @Nullable LivingEntity targetLiving, InteractionHand hand) {
-    if (target.isAttackable() && !target.skipAttackInteraction(player)) {
+    return attack(stack, player, target, targetLiving, hand, player.damageSources().playerAttack(player));
+  }
+
+  /**
+   * Performs an attack, mimicking {@link Player#attack(Entity)} but allowing the damage source to be swapped.
+   * For use in {@link net.minecraft.world.item.Item#interactLivingEntity(ItemStack, Player, LivingEntity, InteractionHand)} primarily,
+   * but can also be used to fake an attack similar to {@link net.minecraftforge.common.extensions.IForgeItem#onLeftClickEntity(ItemStack, Player, Entity)}.
+   *
+   * @param stack         Stack used for attacking.
+   * @param target        Entity target
+   * @param targetLiving  Living entity target. May be different in the case of multipart entities.
+   * @param hand          Hand used for attacking.
+   * @param damageSource  Damage source to apply
+   */
+  public static boolean attack(ItemStack stack, Player player, Entity target, @Nullable LivingEntity targetLiving, InteractionHand hand, DamageSource damageSource) {
+    if (isAttackable(player, target)) {
       // find damage to deal
       float damage;
       if (hand == InteractionHand.OFF_HAND) {
@@ -169,7 +237,6 @@ public class CombatHelper {
         boolean hit;
 
         // cancel knockback if requested
-        DamageSource damageSource = player.damageSources().playerAttack(player);
         if (stack.canPerformAction(NO_BASE_KNOCKBACK) && targetLiving != null) {
           AttributeInstance knockbackAttribute = targetLiving.getAttribute(Attributes.KNOCKBACK_RESISTANCE);
           if (knockbackAttribute != null && !knockbackAttribute.hasModifier(ANTI_KNOCKBACK_MODIFIER)) {

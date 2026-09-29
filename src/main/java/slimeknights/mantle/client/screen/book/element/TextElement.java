@@ -14,7 +14,7 @@ import java.util.List;
 public class TextElement extends SizedBookElement {
 
   public TextData[] text;
-  private final List<Component> tooltip = new ArrayList<Component>();
+  private final List<Component> tooltip = new ArrayList<>();
 
   private transient String lastAction = "";
 
@@ -39,7 +39,7 @@ public class TextElement extends SizedBookElement {
 
   @Override
   public void drawOverlay(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks, Font fontRenderer) {
-    if (this.tooltip.size() > 0) {
+    if (!this.tooltip.isEmpty()) {
       drawTooltip(graphics, this.tooltip, mouseX, mouseY, fontRenderer);
       this.tooltip.clear();
     }
@@ -50,5 +50,10 @@ public class TextElement extends SizedBookElement {
     if (mouseButton == 0 && !lastAction.isEmpty()) {
       StringActionProcessor.process(lastAction, this.parent);
     }
+  }
+
+  @Override
+  public boolean isText() {
+    return true;
   }
 }

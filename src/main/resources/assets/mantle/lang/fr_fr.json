@@ -1,6 +1,8 @@
 {
   "mantle:tooltip.cooktime": "Temps de cuisson : %ds",
   "config.mantle.extraHeartRenderer": "Activer le rendu des cœurs supplémentaires",
+  "config.mantle.enableFluidFogFix": "Activer la correction du brouillard de fluide",
+  "config.mantle.fluidFallbackUseTextShader": "Utiliser le shader de texte en repli pour les fluides",
   "config.mantle.fabric.fluidUnit": "Unité de fluide",
 
   "command.mantle.view_tag.success": "Valeurs pour l'étiquette %s « %s » :",
@@ -20,8 +22,16 @@
 
   "command.mantle.book_test.not_found": "Livre inconnu avec l'ID %s",
   "command.mantle.book.export.success": "Images du livre exportées vers « %s »",
+  "command.mantle.book.export.html.success": "Images du livre exportées vers « %s » et HTML vers « %s »",
   "command.mantle.book.export.error_generic": "Échec de l'exportation des images du livre, voir les logs pour plus de détails",
   "command.mantle.book.export.error_io": "Échec de la création du dossier pour les images du livre « %s »",
+
+  "command.mantle.hunger.set.single": "Faim de %s réglée à %d",
+  "command.mantle.hunger.set.multiple": "Faim de %d joueurs réglée à %d",
+  "command.mantle.hunger.add.single": "%s a reçu +%d de faim",
+  "command.mantle.hunger.add.multiple": "%d joueurs ont reçu +%d de faim",
+  "command.mantle.hunger.subtract.single": "%s a reçu -%d de faim",
+  "command.mantle.hunger.subtract.multiple": "%d joueurs ont reçu -%d de faim",
 
   "command.mantle.dump_tag.success": "Étiquette %s combinée « %s » imprimée dans les logs de la console",
   "command.mantle.dump_tag.success_log": "Étiquette %s combinée « %s » exportée vers « %s »",

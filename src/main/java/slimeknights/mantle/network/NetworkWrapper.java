@@ -82,6 +82,18 @@ public class NetworkWrapper {
     this.network.registerMessage(this.id++, clazz, encoder, decoder, consumer, Optional.ofNullable(direction));
   }
 
+  /** Wraps the given encoder function */
+  private static <MSG> BiConsumer<MSG, FriendlyByteBuf> wrapLogger(Class<MSG> clazz, BiConsumer<MSG, FriendlyByteBuf> encoder) {
+    return (message, buffer) -> {
+      try {
+        encoder.accept(message, buffer);
+      } catch (Exception e) {
+        Mantle.logger.error("Exception while encoding packet of class {}", clazz.getName(), e);
+        throw e;
+      }
+    };
+  }
+
   /** Wraps the given decoder function */
   private static <MSG> Function<FriendlyByteBuf,MSG> wrapLogger(Class<MSG> clazz, Function<FriendlyByteBuf,MSG> decoder) {
     return buffer -> {

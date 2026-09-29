@@ -5,13 +5,17 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import slimeknights.mantle.client.book.IHTML;
 import slimeknights.mantle.client.book.action.StringActionProcessor;
+import slimeknights.mantle.client.book.data.BookData;
 import slimeknights.mantle.client.book.data.PageData;
 import slimeknights.mantle.client.book.data.element.TextData;
 import slimeknights.mantle.client.screen.book.BookScreen;
+import slimeknights.mantle.util.html.HtmlElement;
+import slimeknights.mantle.util.html.HtmlSerializable;
 
 /** Link elements for {@link slimeknights.mantle.client.book.data.content.ContentPageIconList} */
-public class PageIconLinkElement extends SizedBookElement {
+public class PageIconLinkElement extends SizedBookElement implements IHTML {
 
   public PageData pageData;
   public SizedBookElement displayElement;
@@ -63,5 +67,17 @@ public class PageIconLinkElement extends SizedBookElement {
     if (this.isHovered(mouseX, mouseY)) {
       StringActionProcessor.process(this.action, this.parent);
     }
+  }
+
+  @Override
+  public HtmlSerializable toHTML(BookData book) {
+    // basically just ignores 'mantle:go-to-page-rtn '
+    String location = action.substring(action.indexOf(StringActionProcessor.PROTOCOL_SEPARATOR) + StringActionProcessor.PROTOCOL_SEPARATOR.length());
+    int bookPage = book.findPageNumber(location);
+    PageData target = book.findPage(bookPage - 1, null);
+    if (target == null) {
+      return HtmlSerializable.EMPTY;
+    }
+    return HtmlElement.indent("a").href("../page-" + (bookPage / 2) + "/#" + location).add(HtmlElement.div().classes("grid-icon").minetip(target.getTitle()));
   }
 }

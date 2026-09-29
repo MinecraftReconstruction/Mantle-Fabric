@@ -22,7 +22,11 @@ import slimeknights.mantle.client.screen.book.element.BookElement;
 import slimeknights.mantle.client.screen.book.element.ImageElement;
 import slimeknights.mantle.client.screen.book.element.ItemElement;
 import slimeknights.mantle.client.screen.book.element.TextElement;
+import slimeknights.mantle.util.html.HtmlElement;
+import slimeknights.mantle.util.html.HtmlGroup;
+import slimeknights.mantle.util.html.HtmlSerializable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 
 import static slimeknights.mantle.client.screen.book.Textures.TEX_CRAFTING;
@@ -30,24 +34,25 @@ import static slimeknights.mantle.client.screen.book.Textures.TEX_CRAFTING;
 public class ContentCrafting extends PageContent {
   public static final ResourceLocation ID = Mantle.getResource("crafting");
 
-  public static final transient int TEX_SIZE = 256;
-  public static final transient ImageData IMG_CRAFTING_LARGE = new ImageData(TEX_CRAFTING, 0, 0, 183, 114, TEX_SIZE, TEX_SIZE);
-  public static final transient ImageData IMG_CRAFTING_SMALL = new ImageData(TEX_CRAFTING, 0, 114, 155, 78, TEX_SIZE, TEX_SIZE);
+  public static final int TEX_SIZE = 256;
+  public static final ImageData IMG_CRAFTING_LARGE = new ImageData(TEX_CRAFTING, 0, 0, 183, 114, TEX_SIZE, TEX_SIZE);
+  public static final ImageData IMG_CRAFTING_SMALL = new ImageData(TEX_CRAFTING, 0, 114, 155, 78, TEX_SIZE, TEX_SIZE);
 
-  public static final transient int X_RESULT_SMALL = 118;
-  public static final transient int Y_RESULT_SMALL = 23;
-  public static final transient int X_RESULT_LARGE = 146;
-  public static final transient int Y_RESULT_LARGE = 41;
+  public static final int X_RESULT_SMALL = 118;
+  public static final int Y_RESULT_SMALL = 23;
+  public static final int X_RESULT_LARGE = 146;
+  public static final int Y_RESULT_LARGE = 41;
 
-  public static final transient float ITEM_SCALE = 2.0F;
-  public static final transient int SLOT_MARGIN = 5;
-  public static final transient int SLOT_PADDING = 4;
+  public static final float ITEM_SCALE = 2.0F;
+  public static final int SLOT_MARGIN = 5;
+  public static final int SLOT_PADDING = 4;
 
   @Getter
   public String title = "Crafting";
   public String grid_size = "auto";
   public IngredientData[][] grid;
   public IngredientData result;
+  @Nullable
   public TextData[] description;
   public String recipe;
 
@@ -153,5 +158,15 @@ public class ContentCrafting extends PageContent {
         }
       }
     }
+  }
+
+  @Override
+  public HtmlSerializable toHTML(BookData book) {
+    return HtmlGroup.indent().add(
+      makeTitleHTML(),
+      HtmlElement.div()
+        .style("padding-top", (2 * (grid_size.equalsIgnoreCase("small") ? IMG_CRAFTING_SMALL.height : IMG_CRAFTING_LARGE.height) + 5))
+        .add(TextData.toHtml(description, book))
+    );
   }
 }

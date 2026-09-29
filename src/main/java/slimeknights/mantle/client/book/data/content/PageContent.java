@@ -2,6 +2,7 @@ package slimeknights.mantle.client.book.data.content;
 
 import lombok.Getter;
 import lombok.Setter;
+import slimeknights.mantle.client.book.IHTML;
 import slimeknights.mantle.client.book.data.BookData;
 import slimeknights.mantle.client.book.data.PageData;
 import slimeknights.mantle.client.book.data.element.TextData;
@@ -9,12 +10,13 @@ import slimeknights.mantle.client.book.repository.BookRepository;
 import slimeknights.mantle.client.screen.book.BookScreen;
 import slimeknights.mantle.client.screen.book.element.BookElement;
 import slimeknights.mantle.client.screen.book.element.TextElement;
+import slimeknights.mantle.util.html.HtmlElement;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 
 /** Base for all page content */
-public abstract class PageContent {
+public abstract class PageContent implements IHTML {
 
   public static final transient int TITLE_HEIGHT = 16;
   public static final transient int LARGE_TITLE_HEIGHT = 20;
@@ -46,7 +48,7 @@ public abstract class PageContent {
   public abstract void build(BookData book, ArrayList<BookElement> list, boolean rightSide);
 
   /** Returns true if the title should be large */
-  private boolean isLarge() {
+  protected boolean isLarge() {
     if (largeTitle != null) {
       return largeTitle;
     }
@@ -57,7 +59,7 @@ public abstract class PageContent {
   }
 
   /** Returns true if the title should be centered */
-  private boolean isCentered() {
+  protected boolean isCentered() {
     if (centerTitle != null) {
       return centerTitle;
     }
@@ -163,5 +165,27 @@ public abstract class PageContent {
     int height = this.parent.parent.parent.fontRenderer.wordWrapHeight(text, BookScreen.PAGE_WIDTH) * 12 / 9;
     list.add(new TextElement(5, y, BookScreen.PAGE_WIDTH, height, subText));
     return height;
+  }
+
+  /** Creates a mutable HTML object for the title */
+  public HtmlElement makeTitleHTML() {
+    String title = getTitle();
+    if (title == null) {
+      return HtmlElement.p();
+    }
+    HtmlElement element = HtmlElement.p()
+      .add(title)
+      .classes("underline");
+
+    if (parent != null)
+      element = element.id(parent.parent.name +  "." + parent.name);
+
+    if (isLarge()) {
+      element.classes("large");
+    }
+    if (isCentered()) {
+      element.style("align-self", "center");
+    }
+    return element;
   }
 }

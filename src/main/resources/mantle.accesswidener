@@ -131,3 +131,16 @@ transitive-accessible field net/minecraft/world/inventory/AbstractContainerMenu 
 # Forge adds ArgumentTypeInfos#registerByClass, which is really just this private class -> info map; the argument type
 # deferred register needs it so custom argument types can be synced over the network.
 transitive-accessible field net/minecraft/commands/synchronization/ArgumentTypeInfos BY_CLASS Ljava/util/Map;
+
+# Members Forge opens with an access transformer that the merged upstream code now needs
+transitive-accessible method net/minecraft/world/entity/LivingEntity getLastHandItem (Lnet/minecraft/world/entity/EquipmentSlot;)Lnet/minecraft/world/item/ItemStack;
+transitive-accessible method net/minecraft/world/entity/ai/attributes/AttributeInstance getModifiersOrEmpty (Lnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)Ljava/util/Collection;
+transitive-accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen imageWidth I
+transitive-accessible method net/minecraft/world/item/crafting/ShapedRecipe keyFromJson (Lcom/google/gson/JsonObject;)Ljava/util/Map;
+transitive-accessible method net/minecraft/world/item/crafting/ShapedRecipe shrink ([Ljava/lang/String;)[Ljava/lang/String;
+transitive-accessible method net/minecraft/world/item/crafting/ShapedRecipe patternFromJson (Lcom/google/gson/JsonArray;)[Ljava/lang/String;
+transitive-accessible method net/minecraft/world/item/crafting/ShapedRecipe dissolvePattern ([Ljava/lang/String;Ljava/util/Map;II)Lnet/minecraft/core/NonNullList;
+transitive-accessible method net/minecraft/world/item/crafting/RecipeManager byType (Lnet/minecraft/world/item/crafting/RecipeType;)Ljava/util/Map;
+transitive-accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen imageHeight I
+transitive-accessible field net/minecraft/world/food/FoodData foodLevel I
+transitive-accessible field net/minecraft/world/food/FoodData saturationLevel F

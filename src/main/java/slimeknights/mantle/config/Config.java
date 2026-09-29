@@ -1,6 +1,7 @@
 package slimeknights.mantle.config;
 
 import io.github.fabricators_of_create.porting_lib.config.ModConfigSpec;
+import io.github.fabricators_of_create.porting_lib.config.ModConfigSpec.BooleanValue;
 import io.github.fabricators_of_create.porting_lib.config.ModConfigSpec.ConfigValue;
 import io.github.fabricators_of_create.porting_lib.config.ModConfigSpec.EnumValue;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -21,6 +22,12 @@ public class Config {
 
 	/** Heart renderer mode */
   public static final EnumValue<HeartRenderer> HEART_RENDERER;
+
+  /** If true, enables the fluid fog fix. If false, disables it for better shader compatability. */
+  public static final BooleanValue ENABLE_FLUID_FOG_FIX;
+
+  /** If true, the fallback shader for fluid uses a text shader, which provides better compatability. */
+  public static final BooleanValue FLUID_USE_TEXT_SHADER;
 
   public static final EnumValue<FluidUnit> FLUID_UNIT;
 
@@ -43,6 +50,22 @@ public class Config {
         "Mod authors: this config is not meant for compatibility with your heart renderer, cancel the RenderGameOverlayEvent.Pre event and our logic won't run")
       .translation("config.mantle.extraHeartRenderer")
       .defineEnum("heartRenderer", HeartRenderer.WITH_MAX);
+
+    ENABLE_FLUID_FOG_FIX = client
+      .comment(
+        "If true, fluids properly have their lighting adjusted under vanilla fog effects such as blindness. If false, they render as nearly fullbright ignoring fog and have limited light level support.",
+        "This config option is provided as the fix breaks shaders, and slightly broken is better than fully broken.",
+        "Best fix is to fix your shaders though, so you can have no broken visuals.")
+      .translation("config.mantle.enableFluidFogFix")
+      .define("enableFluidFogFix", true);
+
+    FLUID_USE_TEXT_SHADER = client
+      .comment(
+        "If true, the fallback shader for fluid uses a text shader, which provides better compatability. If false, uses the generic position color tex lightmap shader.",
+        "The text shader provides a fallback with more functionality than the generic one, but may be unexpected by other custom rendering.",
+        "Does nothing if enableFluidFogFix is true.")
+      .translation("config.mantle.fluidFallbackUseTextShader")
+      .define("fluidFallbackUseTextShader", true);
 
     FLUID_UNIT = client
       .comment("Determines what Fluid Unit should be used to display fluids.")

@@ -19,6 +19,7 @@ import slimeknights.mantle.Mantle;
 import slimeknights.mantle.loot.condition.BlockTagLootCondition;
 import slimeknights.mantle.loot.condition.ContainsItemModifierLootCondition;
 import slimeknights.mantle.loot.condition.EmptyModifierLootCondition;
+import slimeknights.mantle.loot.condition.HasLootContextSetCondition;
 import slimeknights.mantle.loot.condition.ILootModifierCondition;
 import slimeknights.mantle.loot.condition.InvertedModifierLootCondition;
 import slimeknights.mantle.loot.entry.TagPreferenceLootEntry;
@@ -40,6 +41,8 @@ public class MantleLoot {
   public static LootItemConditionType TAG_FILLED;
   /** Condition to match a block tag and property predicate */
   public static LootItemConditionType BLOCK_TAG_CONDITION;
+  /** Condition for global loot modifiers that ensures a context set is present. Useful to check if we are in a specific context like entity. */
+  public static LootItemConditionType HAS_CONTEXT_SET;
   /** Function to add block entity texture to a dropped item */
   public static LootItemFunctionType RETEXTURED_FUNCTION;
   /** Function to add a fluid to an item fluid capability */

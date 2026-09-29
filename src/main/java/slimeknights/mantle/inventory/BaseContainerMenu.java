@@ -313,7 +313,7 @@ public class BaseContainerMenu<TILE extends BlockEntity> extends AbstractContain
   }
 
   /**
-   * Gets a tile entity from a packet buffer
+   * Gets a tile entity from a packet buffer for the client menu.
    * @param buf     Packet buffer instance
    * @param type    Tile entity class
    * @param <TILE>  Tile entity type

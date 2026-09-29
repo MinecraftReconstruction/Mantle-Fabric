@@ -23,6 +23,8 @@ import slimeknights.mantle.client.book.data.BookData;
 import slimeknights.mantle.client.book.data.PageData;
 import slimeknights.mantle.client.book.data.SectionData;
 import slimeknights.mantle.client.screen.book.element.BookElement;
+import slimeknights.mantle.util.html.HtmlElement;
+import slimeknights.mantle.util.html.HtmlSerializable;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -65,6 +67,8 @@ public class BookScreen extends Screen {
   public boolean mouseInput = true;
   /** If true, animated elements can animate. Set to false during export to ensure first element consistently shows. */
   public boolean enableAnimations = true;
+  /** If true, text elements are drawn. Set to false during export of book html */
+  public boolean drawText = true;
 
   private ArrowButton previousArrow, nextArrow, backArrow, indexArrow;
 
@@ -321,7 +325,8 @@ public class BookScreen extends Screen {
 
     Font font = getFontRenderer();
 
-    for(BookElement element : elements) {
+    for (BookElement element : elements) {
+      if (!drawText && element.isText()) continue;
       RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
       layerFunc.draw(element, graphics, mouseX, mouseY, partialTicks, font);
     }
@@ -563,9 +568,9 @@ public class BookScreen extends Screen {
     if (pageUpdater != null) {
       String pageStr = "";
       if (this.page >= 0) {
-        PageData page = this.page == 0 ? this.book.findPage(0, this.advancementCache) : this.book.findPage((this.page - 1) * 2 + 1, this.advancementCache);
+        PageData page = this.page == 0 ? this.book.findPage(0, this.advancementCache) : getLeftPage();
         if (page == null) {
-          page = this.book.findPage((this.page - 1) * 2 + 2, this.advancementCache);
+          page = getRightPage();
         }
         if (page != null && page.parent != null) {
           pageStr = page.parent.name + "." + page.name;
@@ -700,8 +705,8 @@ public class BookScreen extends Screen {
         page.content.build(this.book, this.rightElements, false);
       }
     } else {
-      PageData leftPage = this.book.findPage((this.page - 1) * 2 + 1, this.advancementCache);
-      PageData rightPage = this.book.findPage((this.page - 1) * 2 + 2, this.advancementCache);
+      PageData leftPage = getLeftPage();
+      PageData rightPage = getRightPage();
 
       if (leftPage != null) {
         leftPage.content.build(this.book, this.leftElements, false);
@@ -717,6 +722,73 @@ public class BookScreen extends Screen {
     for (BookElement element : this.rightElements) {
       element.setParent(this);
     }
+  }
+
+  /** {@return PageData from the left page } */
+  @Nullable
+  private PageData getLeftPage() {
+    return this.book.findPage((this.page - 1) * 2 + 1, this.advancementCache);
+  }
+
+  /** {@return PageData from the right page } */
+  @Nullable
+  private PageData getRightPage() {
+    return this.book.findPage((this.page - 1) * 2 + 2, this.advancementCache);
+  }
+
+
+  /**
+   * Converts the cover to HTML.
+   * Preconditon: {@link #getPage_()} is -1.
+   */
+  public String coverToHtml(String bookName, String title, String version, String mod) {
+    return "---\n" +
+      "layout: book-cover\n" +
+      "title: " + title + " (" + version + ")\n" +
+      "breadcrumb: " + title + "\n" +
+      "description: Interactive " + title + " from " + mod + " in Minecraft " + version + ".\n" +
+      "book: " + bookName + "\n" +
+      "---\n\n";
+  }
+
+  /**
+   * Converts the current left and right page to HTML including the Jekyll front matter.
+   * Preconditon: {@link #getPage_()} is not -1.
+   */
+  public String pageToHtml(String bookName, String title, String version, String mod) {
+    PageData leftData = getLeftPage();
+    PageData rightData = getRightPage();
+
+    StringBuilder builder = new StringBuilder();
+
+    // create page if we have data on either side
+    if (leftData != null || rightData != null) {
+      builder.append("---\n")
+        .append("layout: book-page\n")
+        .append("title: ").append(title).append(" (").append(version).append(") - page ").append(this.page).append('\n')
+        .append("breadcrumb: ").append(this.page).append('\n')
+        .append("description: Interactive ").append(title).append(" from ").append(mod).append(" in Minecraft ").append(version).append(".\n")
+        .append("book: ").append(bookName).append('\n')
+        .append("page_num: ").append(this.page).append('\n')
+        .append("---\n\n");
+    }
+
+    // add page data
+    if (leftData != null) {
+      HtmlSerializable left = leftData.content.toHTML(book);
+      if (left != null) {
+        HtmlElement.div().classes("left").add(left).toHtml(builder, "");
+      }
+      builder.append('\n');
+    }
+    if (rightData != null) {
+      HtmlSerializable right = rightData.content.toHTML(book);
+      if (right != null) {
+        HtmlElement.div().classes("right").add(right).toHtml(builder, "");
+      }
+      builder.append('\n');
+    }
+    return builder.toString();
   }
 
   public static class AdvancementCache implements ClientAdvancements.Listener {

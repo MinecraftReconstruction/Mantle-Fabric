@@ -14,6 +14,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.SuggestionProviders;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.FileToIdConverter;
 import slimeknights.mantle.Mantle;
 import slimeknights.mantle.client.book.BookLoader;
@@ -26,13 +27,17 @@ import java.util.function.Consumer;
 public class MantleClientCommand {
   /** Suggestion provider that lists registered book ids **/
   public static SuggestionProvider<FabricClientCommandSource> REGISTERED_BOOKS;
+  /** Suggestion provider that lists registered book domains */
+  public static SuggestionProvider<FabricClientCommandSource> REGISTERED_BOOK_DOMAINS;
 
   /** Registers all Mantle client command related content */
   @SuppressWarnings("deprecation")
   public static void init() {
     // register arguments
     REGISTERED_BOOKS = SuggestionProviders.register(Mantle.getResource("registered_books"), (context, builder) ->
-      SharedSuggestionProvider.suggestResource(BookLoader.getRegisteredBooks(), builder));
+      SharedSuggestionProvider.suggestResource(BookLoader.getAllBooks(), builder));
+    REGISTERED_BOOK_DOMAINS = SuggestionProviders.register(Mantle.getResource("registered_book_domains"), (context, builder) ->
+      SharedSuggestionProvider.suggest(BookLoader.getAllBooks().stream().map(ResourceLocation::getNamespace).distinct(), builder));
 
     // source command suggestions
     FileToIdConverter atlases = new FileToIdConverter("textures/atlas", ".png");

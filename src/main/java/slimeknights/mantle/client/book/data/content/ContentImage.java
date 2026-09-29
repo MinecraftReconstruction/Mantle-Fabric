@@ -8,6 +8,7 @@ import slimeknights.mantle.client.book.data.element.ImageData;
 import slimeknights.mantle.client.screen.book.BookScreen;
 import slimeknights.mantle.client.screen.book.element.BookElement;
 import slimeknights.mantle.client.screen.book.element.ImageElement;
+import slimeknights.mantle.util.html.HtmlSerializable;
 
 import java.util.ArrayList;
 
@@ -33,5 +34,10 @@ public class ContentImage extends PageContent {
     } else {
       list.add(new ImageElement(ImageData.MISSING));
     }
+  }
+
+  @Override
+  public HtmlSerializable toHTML(BookData book) {
+    return makeTitleHTML();
   }
 }
