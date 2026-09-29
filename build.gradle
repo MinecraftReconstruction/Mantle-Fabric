@@ -67,7 +67,7 @@ if (System.getenv().ARTIFACT_VERSION == null) {
     artifact_version = "${mod_version}.${project.buildInfo.buildNum}"
 }
 if (System.getenv().ARTIFACT_VERSION != null) {
-    artifact_version = "${system.getenv().ARTIFACT_VERSION}"
+    artifact_version = "${System.getenv().ARTIFACT_VERSION}"
 }
 
 version = "${minecraft_version}-${artifact_version}"
@@ -134,7 +134,9 @@ dependencies {
     for (String module in port_lib_modules.split(",")) {
         modApi("io.github.fabricators_of_create.Porting-Lib:$module:$port_lib_version+$minecraft_version")
     }
-    modApi("com.jamieswhiteshirt:reach-entity-attributes:$reach_entity_attributes_version")
+    // jar-in-jar: reach-entity-attributes is not on Modrinth and is only distributed through its own maven, so
+    // bundling it (MIT licensed) is what makes a Modrinth-only install actually work
+    modApi(include("com.jamieswhiteshirt:reach-entity-attributes:$reach_entity_attributes_version"))
     api("com.electronwill.night-config:toml:3.6.6")
     api("com.electronwill.night-config:core:3.6.6")
 

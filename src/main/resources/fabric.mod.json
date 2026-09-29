@@ -3,14 +3,20 @@
   "id": "mantle",
   "version": "${version}",
 
-  "name": "Mantle",
-  "description": "Shared code for Slime Knights mods and others.",
+  "name": "Mantle (Unofficial Fabric Port)",
+  "description": "Unofficial, largely AI-assisted (\"vibed\") port of SlimeKnights' Mantle to Fabric for 1.20.1, targeting the 1.11 line. Upstream code is SlimeKnights' and AlphaMode's; the MinecraftReconstruction migration work is largely AI-assisted and was carried out under human direction, review and validation. This is a library: it is meant to be installed alongside the Fabric Tinkers' Construct port, not on its own.",
   "authors": [
     "Slime Knights",
-    "AlphaMode"
+    "AlphaMode",
+    "MinecraftReconstruction"
+  ],
+  "contributors": [
+    "AI-assisted migration by MinecraftReconstruction agents"
   ],
   "contact": {
-    "sources": "https://github.com/Alpha-s-Stuff/Mantle"
+    "homepage": "https://modrinth.com/project/mantle-fabric-unofficial",
+    "sources": "https://github.com/MinecraftReconstruction/Mantle-Fabric",
+    "issues": "https://github.com/MinecraftReconstruction/Mantle-Fabric/issues"
   },
 
   "license": "MIT",
