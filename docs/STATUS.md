@@ -282,6 +282,7 @@ JSON 结构正常（**没有** Forge 的 `remove` 列表 —— 正是第 1 条�
 | 13 | 本批（本轮） | 收尾 16 个：geometry helper、`addQuads` 签名、`bakedBuilder`、默认精灵、`ArgumentTypeInfos`、Fabric 燃料表、客户端命令参数、Forge 网络 → Mantle 自带 `PacketDistributor`、shader 注册回调 | 16 → **0** |
 | 14 | `28645f3a` | **第一次真机跑服务器**抓到的两个运行时 bug（坏掉的 `en_us.json`、CCA entrypoint 构造器丢失），外加按 Fabric 单位重跑 datagen | 0 → 0（编译本来就过，但服务器从「必崩」变成 `Done (28.575s)`） |
 | 15 | 本批（i18n） | 补齐并统一 6 个语言文件（含从上游**还原** `es_cl`/`ru_ru`）、修 zh_cn 的位置参数 bug、新增 `validateLangFiles` 校验任务 —— 见 [I18N.md](I18N.md) | 0 → 0 |
+| 16 | `ad2e7db0` | **合并上游 Mantle `1.20` 分支（78 个提交，22 个冲突）** —— 补上 TCon 3.12.1 需要的 `util/html`、流体 `FluidPredicate`、`BlockEntityPacket` 等；同时把上游新功能（书本 HTML 导出、hunger 命令、灵魂绑定物品、流体雾气修复配置）逐个移植到 Fabric | 0 → 0 |
 
 ### 已确认的 API 映射（可直接复用）
 
