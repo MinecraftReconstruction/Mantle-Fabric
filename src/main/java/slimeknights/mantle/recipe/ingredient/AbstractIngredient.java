@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-public abstract class AbstractIngredient implements CustomIngredient {
+public abstract class AbstractIngredient extends Ingredient implements CustomIngredient {
 
   private final Ingredient.Value[] values;
   @Nullable
@@ -26,6 +26,7 @@ public abstract class AbstractIngredient implements CustomIngredient {
    * Value constructor, for ingredients that have some vanilla representation
    */
   protected AbstractIngredient(Stream<? extends Ingredient.Value> values) {
+    super(values);
     this.values = values.toArray(Ingredient.Value[]::new);
   }
 
@@ -41,6 +42,15 @@ public abstract class AbstractIngredient implements CustomIngredient {
   @Override
   public boolean requiresTesting() {
     return !isSimple();
+  }
+
+  /**
+   * Since this ingredient is a vanilla ingredient as well, the vanilla form is just itself.
+   * (Fabric's default would wrap it in another layer.)
+   */
+  @Override
+  public Ingredient toVanilla() {
+    return this;
   }
 
   public abstract boolean isSimple();
