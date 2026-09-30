@@ -1,5 +1,7 @@
 package slimeknights.mantle.util;
 
+import io.github.fabricators_of_create.porting_lib.util.LazyOptional;
+
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
@@ -50,6 +52,19 @@ public class LogicHelper {
   @SuppressWarnings("DataFlowIssue")
   @Nullable
   public static <T> T orElseNull(Optional<T> optional) {
+    return optional.orElse(null);
+  }
+
+  /**
+   * Resolves a Porting Lib lazy optional, returning null if absent.
+   * <p>
+   * Upstream Forge Mantle only has this overload (Forge's capability lookups return {@code LazyOptional}); the port
+   * additionally takes {@link Optional} since the Fabric capability APIs return that. Both are kept so upstream call
+   * sites compile unchanged.
+   */
+  @SuppressWarnings("DataFlowIssue")
+  @Nullable
+  public static <T> T orElseNull(LazyOptional<T> optional) {
     return optional.orElse(null);
   }
 }
