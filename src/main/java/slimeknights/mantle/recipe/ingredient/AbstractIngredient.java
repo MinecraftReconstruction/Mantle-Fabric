@@ -30,6 +30,14 @@ public abstract class AbstractIngredient extends Ingredient implements CustomIng
     this.values = values.toArray(Ingredient.Value[]::new);
   }
 
+  /**
+   * Clears the cached matching stacks. Subclasses with their own caches override this and call
+   * super; the cache is also cleared automatically when the ingredient becomes invalid.
+   */
+  protected void invalidate() {
+    this.itemStacks = null;
+  }
+
   @Override
   public List<ItemStack> getMatchingStacks() {
     if (this.itemStacks == null) {
