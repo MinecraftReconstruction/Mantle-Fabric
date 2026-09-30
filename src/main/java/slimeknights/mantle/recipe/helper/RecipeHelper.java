@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -139,5 +140,28 @@ public class RecipeHelper {
   public static <I extends Container, T extends Recipe<I>, C> List<C> getJEIRecipes(RegistryAccess access, RecipeManager manager, RecipeType<T> type, Class<C> clazz) {
     // RecipeManager#byType is private in vanilla; Porting Lib's accessor exposes it again
     return getJEIRecipes(access, ((RecipeManagerAccessor) manager).port_lib$byType(type).values().stream(), clazz);
+  }
+
+
+  /* Network helpers for item based recipe data (Forge ships these on RegistryHelper/RecipeHelper) */
+
+  /** Writes the given item to the packet buffer by registry name */
+  public static void writeItem(FriendlyByteBuf buffer, ItemLike item) {
+    buffer.writeResourceLocation(BuiltInRegistries.ITEM.getKey(item.asItem()));
+  }
+
+  /**
+   * Reads an item from the packet buffer and casts it to the given class
+   * @param buffer  Buffer instance
+   * @param clazz   Expected item class
+   * @return  Item instance
+   * @throws IllegalStateException if the item is not an instance of the given class
+   */
+  public static <T> T readItem(FriendlyByteBuf buffer, Class<T> clazz) {
+    Item item = BuiltInRegistries.ITEM.get(buffer.readResourceLocation());
+    if (!clazz.isInstance(item)) {
+      throw new IllegalStateException("Expected item of type " + clazz.getName() + " but found " + BuiltInRegistries.ITEM.getKey(item));
+    }
+    return clazz.cast(item);
   }
 }
