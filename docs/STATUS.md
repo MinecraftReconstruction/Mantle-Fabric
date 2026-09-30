@@ -325,3 +325,11 @@ JSON 结构正常（**没有** Forge 的 `remove` 列表 —— 正是第 1 条�
 - 必须 **JDK 21**：`JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home`
 - 首次构建含依赖下载约 **9 分钟**，之后 1–3 分钟
 - 构建命令：`./gradlew compileJava`（快速验证）/ `./gradlew build`
+
+## 2026-09-30：修掉 `mantle:tag_filled` 条件被反相（真 bug）
+
+`Mantle#register()` 里把 `TagFilledCondition.ID`（`mantle:tag_filled`）注册成了
+`TagEmptyCondition.SERIALIZER::test` —— 也就是说 "标签非空" 这个条件实际执行的是 "标签为空"。
+TCon 侧的 datagen 有 **342 个** JSON 用到 `mantle:tag_filled`（材料定义的 compat 门、`embossed` 等），
+所以兼容材料（ironwood / steeleaf / pewter / nicrosil ...）会**在标签不存在时加载、存在时反而不加载**。
+一行修复：注册 `TagFilledCondition.SERIALIZER::test`。`./gradlew compileJava` 通过。

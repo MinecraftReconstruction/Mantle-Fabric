@@ -128,7 +128,7 @@ public class Mantle implements ModInitializer {
   @SuppressWarnings("deprecation")
   private void register() {
     ResourceConditions.register(TagEmptyCondition.ID, TagEmptyCondition.SERIALIZER::test);
-    ResourceConditions.register(TagFilledCondition.ID, TagEmptyCondition.SERIALIZER::test);
+    ResourceConditions.register(TagFilledCondition.ID, TagFilledCondition.SERIALIZER::test);
     ResourceConditions.register(TagCombinationCondition.ID, TagCombinationCondition::test);
     ResourceConditions.register(FalseCondition.ID, FalseCondition::test);
     CustomIngredientSerializer.register(FluidContainerIngredient.SERIALIZER);
