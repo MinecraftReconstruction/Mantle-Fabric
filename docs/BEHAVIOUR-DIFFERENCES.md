@@ -58,3 +58,9 @@ Forge 给原版打了很多补丁（额外的字段、事件、注册表、访�
 - 新增一条差异 → 在表格末尾追加，并在提交信息里点名"行为差异"
 - 验证通过某条 → 把"验证状态"改成"已验证（日期 + 验证方式）"，**不要删除该行**
 - 发现等价替换被误判成差异 → 可以合并/删除，但要在提交信息里说明理由
+
+## 移植回归修复记录（非与上游的设计差异）
+
+| # | 位置 | 症状 | 根因 | 修法 | 验证 |
+|---|---|---|---|---|---|
+| R1 | `MantleShaders` / `MantleRenderTypes` | 只要世界里渲染 Tinkers 流体就崩：`NullPointerException: Cannot invoke "ShaderInstance.setSampler(...)" because "shaderInstance" is null`（`RenderType.end` → `VertexBuffer.drawWithShader`）。复现：在冶炼炉控制器旁放一个焦黑/焦炭燃料罐 | `MantleShaders.registerShaders` 从来没被注册到 Fabric 的 `CoreShaderRegistrationCallback`，两个 `ShaderInstance` 一直是 null，而 `MantleRenderTypes.FLUID` 的 `ShaderStateShard` 就指向它 | 在 `ClientEvents.commonSetup` 里注册 `CoreShaderRegistrationCallback.EVENT`；顺手清掉该文件在合并时产生的重复 import，并暴露 `MantleShaders.isRegistered()` 供冒烟测试断言 | 已验证（2026-10-02：TCon 侧冒烟新增 `shaders/` 两项，实测 registered=true 且冲掉 `FLUID`/`SMELTERY_FLUID`/`TRANSLUCENT_FULLBRIGHT` 三个渲染层不再崩） |
