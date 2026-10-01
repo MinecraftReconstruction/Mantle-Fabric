@@ -12,6 +12,7 @@ import io.github.fabricators_of_create.porting_lib.models.geometry.IGeometryLoad
 import io.github.fabricators_of_create.porting_lib.models.geometry.IUnbakedGeometry;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -27,12 +28,14 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import slimeknights.mantle.client.model.util.MantleItemLayerModel;
+import slimeknights.mantle.client.model.util.ModelLayers;
 import slimeknights.mantle.client.model.util.ModelTextureIteratable;
 import slimeknights.mantle.util.JsonHelper;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -99,10 +102,13 @@ public class NBTKeyModel implements IUnbakedGeometry<NBTKeyModel> {
   private static BakedModel bakeModel(BlockModel owner, Material texture, Function<Material,TextureAtlasSprite> spriteGetter, Transformation rotation, ItemOverrides overrides) {
     TextureAtlasSprite sprite = spriteGetter.apply(texture);
     CompositeModel.Baked.Builder builder = CompositeModel.Baked.builder(owner, true, sprite, overrides, owner.getTransforms());
-    // NOTE(porting): Porting Lib's CompositeModel.Builder#addQuads no longer accepts a render type, so the model
-    //  level render type hint is dropped here too. See docs/BEHAVIOUR-DIFFERENCES.md.
-    builder.addQuads(MantleItemLayerModel.getQuadsForSprite(-1, -1, sprite, rotation, 0));
-    return builder.build();
+    List<BakedQuad> quads = MantleItemLayerModel.getQuadsForSprite(-1, -1, sprite, rotation, 0);
+    builder.addQuads(quads);
+    // NOTE(porting): Porting Lib's CompositeModel.Builder#addQuads dropped the render type parameter, so the model
+    //  level render type is recorded separately; see ModelLayers and docs/BEHAVIOUR-DIFFERENCES.md.
+    BakedModel baked = builder.build();
+    ModelLayers.put(baked, List.of(new ModelLayers.Layer(MantleItemLayerModel.getDefaultRenderType(owner), quads)));
+    return baked;
   }
 
   @Override

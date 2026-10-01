@@ -126,11 +126,16 @@ public class MantleItemLayerModel implements IUnbakedGeometry<MantleItemLayerMod
 
     // build final model
     CompositeModel.Baked.Builder modelBuilder = CompositeModel.Baked.builder(owner, isGui3d, particle, overrides, owner.getTransforms());
-    // TODO(porting): Porting Lib's CompositeModel.Builder#addQuads no longer accepts a render type, so the
-    //  per-layer render type resolved above is currently not forwarded and quads render with the vanilla
-    //  default layer. This is a known fidelity gap - see docs/STATUS.md.
-    quadBuilder.build(quadGroup -> modelBuilder.addQuads(quadGroup.quads));
-    return modelBuilder.build();
+    List<ModelLayers.Layer> layers = new ArrayList<>();
+    quadBuilder.build(quadGroup -> {
+      modelBuilder.addQuads(quadGroup.quads);
+      layers.add(new ModelLayers.Layer(quadGroup.renderType(), List.copyOf(quadGroup.quads)));
+    });
+    // NOTE(porting): Porting Lib's CompositeModel.Builder#addQuads dropped the render type parameter, so the layer of
+    //  each batch is recorded separately; see ModelLayers for what still uses it.
+    BakedModel baked = modelBuilder.build();
+    ModelLayers.put(baked, layers);
+    return baked;
   }
 
   /**

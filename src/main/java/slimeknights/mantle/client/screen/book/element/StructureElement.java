@@ -8,17 +8,26 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.ItemOverrides;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import org.jetbrains.annotations.Nullable;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import slimeknights.mantle.client.book.structure.StructureInfo;
 import slimeknights.mantle.client.book.structure.level.TemplateLevel;
 import slimeknights.mantle.client.render.MantleRenderTypes;
+import slimeknights.mantle.client.model.util.ModelLayers;
 import slimeknights.mantle.client.screen.book.BookScreen;
 
 import java.util.List;
@@ -112,15 +121,25 @@ public class StructureElement extends SizedBookElement {
               else
                 overlay = OverlayTexture.NO_OVERLAY;
 
-              // NOTE: Forge's BlockEntity#getModelData and BakedModel#getRenderTypes have no Fabric counterpart, and
-              //  vanilla's ModelBlockRenderer#tesselateBlock accepts neither ModelData nor a RenderType. The book
-              //  preview therefore renders every quad into the translucent-fullbright buffer in one pass instead of
-              //  looping over the model's per-layer render types. See docs/BEHAVIOUR-DIFFERENCES.md.
+              // NOTE(porting): Forge's BlockEntity#getModelData and BakedModel#getRenderTypes have no Fabric
+              //  counterpart, so the layers our own loaders baked are read back from ModelLayers instead. Upstream
+              //  draws every layer into this one fullbright buffer too, so the only thing that matters is drawing each
+              //  layer's quads (not the whole model) once. See docs/BEHAVIOUR-DIFFERENCES.md.
               BakedModel model = blockRender.getBlockModel(state);
-              blockRender.getModelRenderer().tesselateBlock(
-                structureWorld, model, state, pos, transform,
-                buffer.getBuffer(MantleRenderTypes.TRANSLUCENT_FULLBRIGHT), false, structureWorld.random, state.getSeed(pos),
-                overlay);
+              List<ModelLayers.Layer> layers = ModelLayers.get(model);
+              if (layers == null) {
+                blockRender.getModelRenderer().tesselateBlock(
+                  structureWorld, model, state, pos, transform,
+                  buffer.getBuffer(MantleRenderTypes.TRANSLUCENT_FULLBRIGHT), false, structureWorld.random, state.getSeed(pos),
+                  overlay);
+              } else {
+                for (ModelLayers.Layer layer : layers) {
+                  blockRender.getModelRenderer().tesselateBlock(
+                    structureWorld, new SingleLayerModel(model, layer.quads()), state, pos, transform,
+                    buffer.getBuffer(MantleRenderTypes.TRANSLUCENT_FULLBRIGHT), false, structureWorld.random, state.getSeed(pos),
+                    overlay);
+                }
+              }
 
               transform.popPose();
             }
@@ -173,5 +192,57 @@ public class StructureElement extends SizedBookElement {
     float angle = (float) (Math.sqrt(axis.dot(axis)) * Math.PI / 180f);
     axis.normalize();
     return new Transformation(null, new Quaternionf(new AxisAngle4f(angle, axis)), null, null);
+  }
+
+  /**
+   * Baked model exposing only the quads of one render layer of another model.
+   * <p>
+   * Fabric's {@code ModelBlockRenderer#tesselateBlock} takes a whole model and one render type, so drawing a single
+   * layer means handing it a model that contains just that layer; everything else (particle, transforms, flags) is
+   * delegated to the original.
+   */
+  private record SingleLayerModel(BakedModel parent, List<BakedQuad> quads) implements BakedModel {
+    @Override
+    public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource random) {
+      if (side == null) {
+        return quads.stream().filter(quad -> quad.getDirection() == null).toList();
+      }
+      return quads.stream().filter(quad -> quad.getDirection() == side).toList();
+    }
+
+    @Override
+    public boolean useAmbientOcclusion() {
+      return parent.useAmbientOcclusion();
+    }
+
+    @Override
+    public boolean isGui3d() {
+      return parent.isGui3d();
+    }
+
+    @Override
+    public boolean usesBlockLight() {
+      return parent.usesBlockLight();
+    }
+
+    @Override
+    public boolean isCustomRenderer() {
+      return parent.isCustomRenderer();
+    }
+
+    @Override
+    public TextureAtlasSprite getParticleIcon() {
+      return parent.getParticleIcon();
+    }
+
+    @Override
+    public ItemOverrides getOverrides() {
+      return ItemOverrides.EMPTY;
+    }
+
+    @Override
+    public ItemTransforms getTransforms() {
+      return parent.getTransforms();
+    }
   }
 }
