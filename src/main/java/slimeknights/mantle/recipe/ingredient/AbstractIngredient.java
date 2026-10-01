@@ -26,8 +26,13 @@ public abstract class AbstractIngredient extends Ingredient implements CustomIng
    * Value constructor, for ingredients that have some vanilla representation
    */
   protected AbstractIngredient(Stream<? extends Ingredient.Value> values) {
-    super(values);
-    this.values = values.toArray(Ingredient.Value[]::new);
+    // vanilla's Ingredient(Stream) consumes the stream, so materialise it once and give the superclass a fresh one
+    this(values.toArray(Ingredient.Value[]::new));
+  }
+
+  private AbstractIngredient(Ingredient.Value[] values) {
+    super(Arrays.stream(values));
+    this.values = values;
   }
 
   /**
