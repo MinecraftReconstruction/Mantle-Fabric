@@ -6,6 +6,8 @@ import io.github.fabricators_of_create.porting_lib.fluids.wrapper.FabricFluidTyp
 import io.github.fabricators_of_create.porting_lib.util.RegistryObject;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -25,6 +27,7 @@ import slimeknights.mantle.fluid.InvertedFluid;
 import slimeknights.mantle.fluid.InvertedFluidType;
 import slimeknights.mantle.fluid.TextureFluidType;
 import slimeknights.mantle.fluid.UnplaceableFluid;
+import slimeknights.mantle.fluid.texture.ClientFluidTextureRegistry;
 import slimeknights.mantle.registration.DelayedSupplier;
 import slimeknights.mantle.registration.FluidBuilder;
 import slimeknights.mantle.registration.RegistrationHelper;
@@ -68,7 +71,14 @@ public class FluidDeferredRegister extends DeferredRegisterWrapper<Fluid> {
     for (FluidAttribute attribute : pendingAttributes) {
       FluidType type = attribute.type().get();
       if (type != null) {
-        FluidVariantAttributes.register(attribute.fluid().get(), new FabricFluidTypeWrapper(type));
+        Fluid fluid = attribute.fluid().get();
+        FluidVariantAttributes.register(fluid, new FabricFluidTypeWrapper(type));
+        // Fabric renders fluids through FluidRenderHandlerRegistry rather than the FluidType, so bridge the texture
+        // as well. Without a handler, Fabric falls back to the water sprite (making every fluid look like water) and
+        // code reading FluidVariantRendering#getSprites crashes on the null sprite array.
+        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+          ClientFluidTextureRegistry.register(fluid, type);
+        }
       }
     }
     pendingAttributes.clear();
