@@ -2,9 +2,11 @@ package slimeknights.mantle.registration.deferred;
 
 import io.github.fabricators_of_create.porting_lib.fluids.FluidType;
 import io.github.fabricators_of_create.porting_lib.fluids.PortingLibFluids;
+import io.github.fabricators_of_create.porting_lib.fluids.wrapper.FabricFluidTypeWrapper;
 import io.github.fabricators_of_create.porting_lib.util.RegistryObject;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.BucketItem;
@@ -34,6 +36,8 @@ import slimeknights.mantle.util.SimpleFlowingFluid.Properties;
 import javax.annotation.Nullable;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Deferred register solving the nightmare that is registering fluids with Forge and Fabric
@@ -43,6 +47,8 @@ public class FluidDeferredRegister extends DeferredRegisterWrapper<Fluid> {
   private final SynchronizedDeferredRegister<FluidType> fluidTypeRegister;
   private final SynchronizedDeferredRegister<Block> blockRegister;
   private final SynchronizedDeferredRegister<Item> itemRegister;
+  /** Fluids waiting for their attribute handler to be registered, see {@link #register()} */
+  private final List<FluidAttribute> pendingAttributes = new ArrayList<>();
 
   public FluidDeferredRegister(String modID) {
     super(Registries.FLUID, modID);
@@ -57,7 +63,19 @@ public class FluidDeferredRegister extends DeferredRegisterWrapper<Fluid> {
     fluidTypeRegister.register();
     blockRegister.register();
     itemRegister.register();
+    // Fabric looks fluid attributes up per fluid, so bridge every Porting Lib FluidType into a Fabric attribute
+    // handler. Without this all temperatures/luminosity fall back to the Fabric defaults (300K and no light).
+    for (FluidAttribute attribute : pendingAttributes) {
+      FluidType type = attribute.type().get();
+      if (type != null) {
+        FluidVariantAttributes.register(attribute.fluid().get(), new FabricFluidTypeWrapper(type));
+      }
+    }
+    pendingAttributes.clear();
   }
+
+  /** Pair of a fluid and the type backing it, so the attributes can be registered after the registry flush */
+  private record FluidAttribute(Supplier<? extends Fluid> fluid, Supplier<? extends FluidType> type) {}
 
   /**
    * Registers a fluid type to the registry
@@ -202,6 +220,7 @@ public class FluidDeferredRegister extends DeferredRegisterWrapper<Fluid> {
       }
       RegistryObject<F> fluid = registerFluid(name, () -> constructor.apply(this));
       stillDelayed.setSupplier(fluid);
+      pendingAttributes.add(new FluidAttribute(fluid, type));
       return new FluidObject<>(resource(name), commonTag, type, fluid);
     }
 
@@ -236,6 +255,8 @@ public class FluidDeferredRegister extends DeferredRegisterWrapper<Fluid> {
       stillDelayed.setSupplier(still);
       Supplier<F> flowing = registerFluid("flowing_" + name, () -> createFlowing.apply(props));
       flowingDelayed.setSupplier(flowing);
+      pendingAttributes.add(new FluidAttribute(still, type));
+      pendingAttributes.add(new FluidAttribute(flowing, type));
 
       // return the final nice object
       return new FlowingFluidObject<>(resource(name), commonTag, type, still, flowing, this.block);
