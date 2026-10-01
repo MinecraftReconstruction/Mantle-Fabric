@@ -31,6 +31,11 @@ public class ClientFluidTextureHandler implements FluidRenderHandler {
     this.type = type;
   }
 
+  /** Gets the texture this fluid uses for its still form */
+  public ResourceLocation stillTexture() {
+    return FluidTextureManager.getStillTexture(this.type);
+  }
+
   @Override
   public TextureAtlasSprite[] getFluidSprites(@Nullable BlockAndTintGetter view, @Nullable BlockPos pos, FluidState state) {
     FluidTexture data = FluidTextureManager.getData(this.type);
