@@ -9,6 +9,7 @@ import io.github.fabricators_of_create.porting_lib.fluids.FluidStack;
 import io.github.fabricators_of_create.porting_lib.models.geometry.IGeometryLoader;
 import io.github.fabricators_of_create.porting_lib.models.geometry.RegisterGeometryLoadersCallback;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
@@ -124,39 +125,29 @@ public class ClientEvents {
     new ExtraHeartRenderHandler().registerEvents();
     OverlayRenderCallback.EVENT.register(ClientEvents::renderOffhandAttackIndicator);
     OverlayRenderCallback.EVENT.register(ClientEvents::renderGaugeTooltip);
+    // NOTE(porting): Porting Lib 2.3.15's overlay event only knows AIR/CROSSHAIRS/PLAYER_HEALTH - the HOTBAR type was
+    //  added in 2.3.16-beta. This port depends on the stable release, so the hotbar half of the offhand attack
+    //  indicator is drawn from Fabric's own HUD callback instead of Porting Lib's event.
+    HudRenderCallback.EVENT.register(ClientEvents::renderOffhandHotbarIndicator);
   }
 
   // registered with FORGE bus
   private static boolean renderOffhandAttackIndicator(GuiGraphics graphics, float partialTicks, Window window, OverlayRenderCallback.Types overlay) {
-    // must have a player, not be in spectator, and have the indicator enabled
+    // the hotbar half is drawn by the HUD callback, this event only carries the crosshair overlay
+    if (Types.CROSSHAIRS != overlay) {
+      return false;
+    }
+
     Minecraft minecraft = Minecraft.getInstance();
     Options settings = minecraft.options;
-    AttackIndicatorStatus indicator = settings.attackIndicator().get();
-    if (minecraft.player == null || minecraft.gameMode == null || minecraft.gameMode.getPlayerMode() == GameType.SPECTATOR || indicator == AttackIndicatorStatus.OFF) {
-      return false;
-    }
-
-    // only care about hotbar and crosshair
-    // will be true for hotbar, false for crosshair
-    boolean isHotbar = Types.HOTBAR == overlay;
-    if (!isHotbar && Types.CROSSHAIRS != overlay) {
-      return false;
-    }
-
-    // fetch the current cooldown
-    OffhandCooldownTracker tracker = OffhandCooldownTracker.get(minecraft.player);
-    if (tracker == null) {
-      return false;
-    }
-    float cooldown = tracker.getCooldown();
-    if (cooldown >= 1.0f) {
+    float cooldown = offhandCooldown(minecraft);
+    if (cooldown < 0) {
       return false;
     }
 
     // show attack indicator
-    switch (indicator) {
-      case CROSSHAIR:
-        if (!isHotbar && minecraft.options.getCameraType().isFirstPerson()) {
+    if (settings.attackIndicator().get() == AttackIndicatorStatus.CROSSHAIR) {
+      if (minecraft.options.getCameraType().isFirstPerson()) {
           if (!settings.renderDebug || settings.hideGui || minecraft.player.isReducedDebugInfo() || settings.reducedDebugInfo().get()) {
             // mostly cloned from vanilla attack indicator
             RenderSystem.enableBlend();
@@ -170,28 +161,58 @@ public class ClientEvents {
             graphics.blit(Gui.GUI_ICONS_LOCATION, x, y, 52, 94, width, 4);
             RenderSystem.defaultBlendFunc();
           }
-        }
-        break;
-      case HOTBAR:
-        if (isHotbar && minecraft.cameraEntity == minecraft.player) {
-          int centerWidth = minecraft.getWindow().getGuiScaledWidth() / 2;
-          int y = minecraft.getWindow().getGuiScaledHeight() - 20;
-          int x;
-          // opposite of the vanilla hand location, extra bit to offset past the offhand slot
-          if (minecraft.player.getMainArm() == HumanoidArm.RIGHT) {
-            x = centerWidth - 91 - 22 - 32;
-          } else {
-            x = centerWidth + 91 + 6 + 32;
-          }
-//          RenderSystem.setShaderTexture(0, GuiComponent.GUI_ICONS_LOCATION);
-          int l1 = (int)(cooldown * 19.0F);
-          RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-          graphics.blit(Gui.GUI_ICONS_LOCATION, x, y, 0, 94, 18, 18);
-          graphics.blit(Gui.GUI_ICONS_LOCATION, x, y + 18 - l1, 18, 112 - l1, 18, l1);
-        }
-        break;
+      }
     }
     return false;
+  }
+
+  /**
+   * Draws the hotbar half of the offhand attack indicator, the equivalent of Porting Lib 2.3.16's
+   * {@code OverlayRenderCallback.Types.HOTBAR}.
+   * @param graphics  Graphics to draw with
+   * @param tickDelta Partial tick, unused
+   */
+  private static void renderOffhandHotbarIndicator(GuiGraphics graphics, float tickDelta) {
+    Minecraft minecraft = Minecraft.getInstance();
+    if (minecraft.options.attackIndicator().get() != AttackIndicatorStatus.HOTBAR || minecraft.cameraEntity != minecraft.player) {
+      return;
+    }
+    float cooldown = offhandCooldown(minecraft);
+    if (cooldown < 0) {
+      return;
+    }
+    int centerWidth = minecraft.getWindow().getGuiScaledWidth() / 2;
+    int y = minecraft.getWindow().getGuiScaledHeight() - 20;
+    int x;
+    // opposite of the vanilla hand location, extra bit to offset past the offhand slot
+    if (minecraft.player.getMainArm() == HumanoidArm.RIGHT) {
+      x = centerWidth - 91 - 22 - 32;
+    } else {
+      x = centerWidth + 91 + 6 + 32;
+    }
+    int l1 = (int)(cooldown * 19.0F);
+    RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+    graphics.blit(Gui.GUI_ICONS_LOCATION, x, y, 0, 94, 18, 18);
+    graphics.blit(Gui.GUI_ICONS_LOCATION, x, y + 18 - l1, 18, 112 - l1, 18, l1);
+  }
+
+  /**
+   * Gets the offhand cooldown to render, or -1 when the indicator should not be drawn.
+   * @param minecraft  Client instance
+   * @return  Cooldown from 0 to 1, or -1 to skip
+   */
+  private static float offhandCooldown(Minecraft minecraft) {
+    // must have a player, not be in spectator, and have the indicator enabled
+    if (minecraft.player == null || minecraft.gameMode == null || minecraft.gameMode.getPlayerMode() == GameType.SPECTATOR
+        || minecraft.options.attackIndicator().get() == AttackIndicatorStatus.OFF) {
+      return -1;
+    }
+    OffhandCooldownTracker tracker = OffhandCooldownTracker.get(minecraft.player);
+    if (tracker == null) {
+      return -1;
+    }
+    float cooldown = tracker.getCooldown();
+    return cooldown >= 1.0f ? -1 : cooldown;
   }
 
 
