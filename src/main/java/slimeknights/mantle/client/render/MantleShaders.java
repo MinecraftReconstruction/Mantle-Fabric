@@ -9,9 +9,6 @@ import slimeknights.mantle.config.Config;
 
 import javax.annotation.Nullable;
 import slimeknights.mantle.Mantle;
-import slimeknights.mantle.config.Config;
-
-import javax.annotation.Nullable;
 import java.io.IOException;
 
 public class MantleShaders {
@@ -40,5 +37,10 @@ public class MantleShaders {
       Mantle.getResource("fluid"), DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP,
       shader -> fluidShader = shader
     );
+  }
+
+  /** True if both of Mantle's core shaders were registered; used by the dev self test */
+  public static boolean isRegistered() {
+    return blockFullBrightShader != null && fluidShader != null;
   }
 }

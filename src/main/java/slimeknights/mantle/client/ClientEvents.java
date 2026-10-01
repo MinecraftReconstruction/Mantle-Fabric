@@ -10,6 +10,7 @@ import io.github.fabricators_of_create.porting_lib.models.geometry.IGeometryLoad
 import io.github.fabricators_of_create.porting_lib.models.geometry.RegisterGeometryLoadersCallback;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
@@ -51,6 +52,7 @@ import slimeknights.mantle.client.model.util.MantleItemLayerModel;
 import slimeknights.mantle.client.model.util.ModelHelper;
 import slimeknights.mantle.client.render.FluidCuboid;
 import slimeknights.mantle.client.render.RenderItem;
+import slimeknights.mantle.client.render.MantleShaders;
 import slimeknights.mantle.command.client.MantleClientCommand;
 import slimeknights.mantle.datagen.MantleTags;
 import slimeknights.mantle.fluid.texture.FluidTextureManager;
@@ -125,6 +127,11 @@ public class ClientEvents {
     new ExtraHeartRenderHandler().registerEvents();
     OverlayRenderCallback.EVENT.register(ClientEvents::renderOffhandAttackIndicator);
     OverlayRenderCallback.EVENT.register(ClientEvents::renderGaugeTooltip);
+    // NOTE(porting): Mantle's own core shaders (block_fullbright and fluid) have to be registered with this callback
+    // or their ShaderInstances stay null: FlushableRenderTypes/CompositeRenderType#end then calls
+    // VertexBuffer#drawWithShader(null) and the game crashes the moment any Tinkers fluid is rendered in the world
+    // (gauge, channel, faucet, tank, fluid cannon projectile).
+    CoreShaderRegistrationCallback.EVENT.register(MantleShaders::registerShaders);
     // NOTE(porting): Porting Lib 2.3.15's overlay event only knows AIR/CROSSHAIRS/PLAYER_HEALTH - the HOTBAR type was
     //  added in 2.3.16-beta. This port depends on the stable release, so the hotbar half of the offhand attack
     //  indicator is drawn from Fabric's own HUD callback instead of Porting Lib's event.
