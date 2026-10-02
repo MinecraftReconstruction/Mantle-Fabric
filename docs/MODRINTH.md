@@ -45,7 +45,7 @@ and validation**. Bugs found by running it are tracked in this repository's `doc
 ## What this is (and is not)
 
 * This is a **library**. On its own it does nothing — install it only if a mod asks for it.
-  It exists so that the Fabric Tinkers' Construct port (Hephaestus-derived, synced to Tinkers' Construct 3.12.1)
+  It exists so that the Fabric Tinkers' Construct port (Anvilwright, synced to Tinkers' Construct 3.12.1)
   has the Mantle 1.11 API it needs.
 * This is **not** the official Mantle. Please do not report bugs of this build to SlimeKnights.
 * The mod id is `mantle`, the same id the 1.9 Fabric Mantle uses. **Do not install this together with mods
